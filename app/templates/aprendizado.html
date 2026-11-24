@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% block t %}Aprendizado{% endblock %}{% block c %}
+<h1>Aprendizado</h1>
+<p class="mut">O sistema compara a nota dos perfis com o que aconteceu de verdade (views reais dos stories, sua nota 1–5, referências, aprovados/descartados) e ajusta os pesos. "Não respondeu" e "recusou" <b>não</b> contam como perfil ruim.</p>
+<div class="grid two">
+<div class="card"><h2 style="margin-top:0">Pesos atuais vs. sugeridos</h2>
+<p class="small mut">{{sim.amostras}} perfis com resultado conhecido. O ajuste só acontece a partir de 6 amostras por sinal.</p>
+<table><tr><th>Sinal</th><th class="num">Atual</th><th class="num">Correlação</th><th class="num">Sugerido</th></tr>
+{% for k, i in sim.componentes.items() %}<tr><td>{{NOMES[k]}} <span class="mut small">n={{i.n}}</span></td><td class="num">{{'%.2f'|format(pesos[k])}}</td><td class="num">{{i.correlacao if i.correlacao is not none else '—'}}</td><td class="num">{{'%.2f'|format(i.peso_depois)}}</td></tr>{% endfor %}</table>
+<p class="small">Estimativa de stories: taxa base {{sim.stories.taxa_antes}} → {{sim.stories.taxa_depois}} ({{sim.stories.amostras}} views reais)</p>
+{% if sim.perfil_tipico_bom %}<p class="small">Perfil típico bom ({{sim.perfil_tipico_bom.n}}): {{sim.perfil_tipico_bom.seguidores|n}} seguidores, {{sim.perfil_tipico_bom.media_views_reels|n}} views/reel, {{sim.perfil_tipico_bom.media_curtidas|n}} curtidas, {{sim.perfil_tipico_bom.media_comentarios|n}} comentários.</p>{% endif %}
+<form method="post" action="/recalibrar" class="inline"><button class="p">Aplicar recalibração</button></form>
+<form method="post" action="/pesos/restaurar" class="inline" onsubmit="return confirm('Voltar aos pesos padrão?')"><button>Restaurar padrão</button></form>
+</div>
+<form class="card" method="post" action="/config"><h2 style="margin-top:0">Configuração</h2>
+<div class="fields">
+<div><label>Seguidores mín.</label><input name="faixa_min" value="{{cfg.faixa_min}}"></div>
+<div><label>Seguidores máx. (normal)</label><input name="faixa_max" value="{{cfg.faixa_max}}"></div>
+<div><label>Máx. casos especiais</label><input name="faixa_especial_max" value="{{cfg.faixa_especial_max}}"></div>
+<div><label>UFs prioritárias</label><input name="ufs_prioritarias" value="{{cfg.ufs_prioritarias|join(', ')}}"></div>
+<div><label>Limite diário de visitas do agente</label><input name="limite_diario" value="{{limite}}"></div>
+</div>
+<h2>Pesos manuais</h2><div class="fields">{% for k, v in pesos.items() %}<div><label>{{NOMES[k]}}</label><input name="peso_{{k}}" value="{{'%.2f'|format(v)}}"></div>{% endfor %}</div>
+<div style="margin-top:10px"><button class="p">Salvar e recalcular notas</button></div></form>
+</div>
+<h2>Rendimento por fonte de busca</h2>
+<table><tr><th>Origem</th><th class="num">Perfis</th><th class="num">Nota média</th><th class="num">Bons</th><th class="num">Contatadas</th><th class="num">Responderam</th><th class="num">Fechadas</th><th class="num">Descartadas</th></tr>
+{% for f in fontes %}<tr><td>{{f.origem}} <span class="mut">{{f.detalhe}}</span></td><td class="num">{{f.perfis}}</td><td class="num">{{f.score_medio}}</td><td class="num">{{f.bons}}</td><td class="num">{{f.contatados}}</td><td class="num">{{f.responderam}}</td><td class="num">{{f.fechados}}</td><td class="num">{{f.descartados}}</td></tr>
+{% else %}<tr><td colspan="8" class="mut">Sem dados.</td></tr>{% endfor %}</table>
+<div class="grid two">{% for titulo, linhas in [('Resposta por tipo de origem', por_origem), ('Resposta por cidade', por_cidade)] %}<div><h2>{{titulo}}</h2>
+<table><tr><th></th><th class="num">Contatadas</th><th class="num">Resposta</th><th class="num">Fechamento</th></tr>
+{% for c in linhas %}<tr><td>{{c.chave}}</td><td class="num">{{c.contatados}}</td><td class="num">{{c.taxa_resposta}}%</td><td class="num">{{c.taxa_fechamento}}%</td></tr>{% else %}<tr><td colspan="4" class="mut">Sem dados.</td></tr>{% endfor %}</table></div>{% endfor %}</div>
+{% if historico %}<h2>Histórico de recalibrações</h2><table>{% for h in historico %}<tr><td class="small">{{h.em}}</td><td class="small mut">{% for k,v in h.pesos.items() %}{{NOMES.get(k,k)}} {{'%.2f'|format(v)}}{{ ' · ' if not loop.last }}{% endfor %}</td></tr>{% endfor %}</table>{% endif %}
+{% endblock %}

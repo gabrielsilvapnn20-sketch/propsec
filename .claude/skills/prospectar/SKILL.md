@@ -1,0 +1,121 @@
+---
+name: prospectar
+description: Rodar uma sessão de prospecção de influenciadoras no Instagram pelo Claude in Chrome — encontrar perfis, coletar os sinais públicos e salvar no PropSec. Use quando o usuário pedir para prospectar, buscar perfis, achar influenciadoras ou rodar o agente.
+---
+
+# Sessão de prospecção
+
+Você navega no Instagram com a conta de prospecção (já logada no Chrome) e salva perfis no
+PropSec. **Você só lê.** Nunca envia mensagem, segue, curte, comenta, responde story ou
+clica em "seguir". Se algo pedir login, verificação, captcha ou mostrar "tente novamente mais
+tarde" / "ação bloqueada": **pare na hora**, encerre a sessão e avise o usuário.
+
+Antes de usar o navegador, carregue a skill `anthropic-skills:chrome-browser`.
+Trabalhe numa aba nova; não mexa nas abas do usuário.
+
+## 1. Abrir a sessão
+
+```bash
+python propsec.py sessao inicio
+python propsec.py proximas-fontes
+```
+
+`sessao inicio` mostra quantos perfis já foram visitados hoje e o limite diário (padrão 120).
+Não ultrapasse o limite. Se o usuário pediu uma quantidade ou uma fonte específica, siga o pedido.
+
+Escolha 2 a 4 fontes da lista. Prefira misturar: 1 "similar" de um perfil que deu certo
+(costuma render mais), 1 com bom rendimento e 1 nunca explorada.
+
+## 2. Onde procurar, por tipo de fonte
+
+- **similar @x**: abra o perfil de referência. Use os perfis sugeridos ("Sugestões para
+  você" / seta ao lado de Seguir), a lista de quem ela segue, e principalmente **quem comenta
+  nos posts dela** (amigas, blogueiras da mesma cidade). Também veja as lojas/marcas que ela
+  marca e, nelas, quem mais aparece marcado.
+- **hashtag**: `https://www.instagram.com/explore/tags/<tag>/` — olhe os posts recentes e
+  os reels, abra os autores.
+- **local**: pesquise o nome da cidade na busca → aba Locais (ou posts marcados naquela
+  cidade). Perfis de mulheres da cidade que postam muito com localização marcada.
+- **busca**: pesquise o termo na busca do Instagram (contas) e abra os resultados.
+- **explorar / reels**: quando encontrar uma boa, olhe também quem ela marca e quem a marca.
+
+Sinais bons de cara: bio com "blogueira", "digital influencer", "publi", "parcerias",
+"contato/WhatsApp", cidade/estado (MA, 📍São Luís, 📍Imperatriz…), "mãe de…", "mãe solo",
+reels com legenda pedindo para assistir/compartilhar, recebidos de lojas locais.
+
+## 3. Para cada candidata
+
+1. Junte os @ que achou e verifique em lote quais são novos:
+   ```bash
+   python propsec.py existe @a @b @c
+   ```
+   Pule os `JA_EXISTE`.
+2. **Triagem rápida** (no topo do perfil). Descarte e registre como `ignorado` se:
+   - seguidores fora de 1.000–20.000;
+   - perfil privado, loja, página de memes/notícias, homem, empresa, perfil abandonado
+     (último post há mais de 2 meses);
+   - claramente comprado (ex.: 15 mil seguidores e posts com 20 curtidas e comentários de bots).
+
+   Registrar o ignorado evita revisitar:
+   ```bash
+   echo '{"username":"x","seguidores":42000,"observacoes":"fora da faixa","origem":"hashtag","origem_detalhe":"publi"}' | python propsec.py salvar - --status ignorado
+   ```
+3. **Coleta completa** (só para quem passou na triagem). Gaste no máximo ~2 minutos por perfil:
+   - **Topo:** nome, seguidores, seguindo, nº de posts, bio, link da bio, contato
+     (WhatsApp/e-mail na bio ou botão de contato), cidade/UF (bio, localizações marcadas).
+   - **Aba Reels:** anote as views dos 9–12 reels mais recentes (ignore fixados).
+     Use a **mediana** (não a média; um viral distorce) → `media_views_reels`.
+   - **3 a 5 posts recentes:** curtidas e nº de comentários (médias). Leia os comentários:
+     são pessoas reais conversando, ela responde? → `comentarios_reais` de 0 a 1
+     (1 = quase tudo gente real conversando; 0 = emojis genéricos/bots).
+   - **Frequência:** pelas datas dos últimos posts → `posts_por_semana`.
+   - **Stories:** tem anel de story ativo agora? Destaques atualizados recentemente?
+     → `stories_ativos` (1/0). Pode abrir os stories só para olhar; **não reaja nem responda**.
+   - **Publi:** já fez publi/permuta (#publi, "parceria", "recebidos", lojas marcadas)?
+     → `faz_publi`, `marca_lojas`.
+   - **Públicos** (etiquetas livres, sem forçar): `mãe solo`, `maternidade`,
+     `mulher de preso`, `moda`, `beleza`, `fitness`, `humor`, `lifestyle`, `evangélica`,
+     `periferia`, `interior`, `universitária` etc.
+   - `tipo_conteudo`: ex. "reels de humor, rotina, provador de lojas".
+   - `hashtags`: as que ela mais usa.
+   - `observacoes`: 1–2 frases com o motivo de ser interessante ("bem conhecida em Codó,
+     comentários de gente da cidade, faz publi de lojas locais").
+4. **Salvar** (um JSON por perfil ou uma lista):
+   ```bash
+   python propsec.py salvar - <<'JSON'
+   {"username": "maria.blog", "nome": "Maria", "cidade": "Codó", "uf": "MA",
+    "seguidores": 6200, "seguindo": 900, "posts": 410,
+    "media_views_reels": 4800, "media_curtidas": 380, "media_comentarios": 35,
+    "comentarios_reais": 0.8, "posts_por_semana": 4, "stories_ativos": 1,
+    "faz_publi": 1, "marca_lojas": 1, "contato": "wa.me/5599...",
+    "link_bio": "...", "bio": "...", "publicos": ["mãe solo", "moda"],
+    "tipo_conteudo": "rotina, provador de lojas", "hashtags": "#codoma #publi",
+    "observacoes": "...", "origem": "similar", "origem_detalhe": "@perfil_referencia"}
+   JSON
+   ```
+   `origem`/`origem_detalhe` devem ser **exatamente** o tipo e o valor da fonte
+   (ex.: `hashtag` + `blogueiramaranhense`, `local` + `Codó`, `similar` + `nome_do_perfil`)
+   — é assim que o sistema aprende quais fontes rendem. Campo que você não conseguiu ver:
+   **omita** (não invente, não coloque 0).
+
+## 4. Ritmo (protege a conta)
+
+- Espere de 15 a 40 segundos entre perfis, variando. A cada ~25 perfis, pausa de 3–5 min.
+- Não abra dezenas de abas; um perfil por vez.
+- Respeite o limite diário mostrado por `sessao inicio`.
+
+## 5. Encerrar
+
+Para cada fonte explorada:
+```bash
+python propsec.py fonte <tipo> "<valor>" --vistos <quantos perfis olhou nela>
+```
+Depois:
+```bash
+python propsec.py sessao fim --visitados <total visitados> --salvos <total salvos (sem ignorados)>
+python propsec.py resumo
+```
+
+Responda ao usuário com: quantos perfis visitou, quantos bons salvou, os 5 melhores
+(@, cidade, seguidores, views médias dos reels, por que vale) e qual fonte rendeu mais.
+Lembre que a fila está em http://localhost:8000/fila para aprovar/descartar.

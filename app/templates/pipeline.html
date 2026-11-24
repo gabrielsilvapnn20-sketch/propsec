@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% from "_macros.html" import score %}
+{% block t %}Pipeline{% endblock %}{% block c %}
+<h1>Pipeline de contato</h1>
+<p class="mut">Mova o perfil conforme a conversa anda. Quando ela mandar o print dos stories, registre as views no perfil — é o dado que mais ensina o sistema.</p>
+<div class="kanban">{% for s, nome, rows in colunas %}<div class="col"><h3>{{nome}} <span class="mut">{{rows|length}}</span></h3>
+{% for p in rows %}<div class="it"><div style="display:flex;justify-content:space-between"><a href="/p/{{p.username}}">@{{p.username}}</a>{{score(p.score)}}</div>
+<div class="small mut">{{p.seguidores|n}} seg · {{p.cidade or '?'}}{% if p.story_views_real %} · <b>{{p.story_views_real|n}}</b> stories{% endif %}</div>
+<form method="post" action="/p/{{p.username}}/status"><select name="status" onchange="this.form.submit()">{% for e in etapas %}<option value="{{e}}" {{'selected' if e==s}}>{{STATUS[e]}}</option>{% endfor %}<option value="descartado">Descartar</option></select></form>
+</div>{% endfor %}</div>{% endfor %}</div>
+{% endblock %}

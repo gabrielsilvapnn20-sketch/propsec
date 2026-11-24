@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block t %}Fila{% endblock %}{% block c %}
+<h1>Fila de aprovação <span class="mut small">({{perfis|length}})</span></h1>
+<p class="mut">Perfis que o agente encontrou. Aprovar manda para o pipeline; descartar ensina o sistema que o perfil não serve.</p>
+<form class="row card" method="get" style="margin-bottom:14px">
+ <div><label class="small mut">UF</label><input name="uf" value="{{uf}}" size="3"></div>
+ <div><label class="small mut">Nota mínima</label><input name="min_score" type="number" value="{{min_score}}" style="width:90px"></div>
+ <div><label class="small mut">Público (ex: mãe solo)</label><input name="publico" value="{{publico}}"></div>
+ <button>Filtrar</button>
+</form>
+<div class="cards">{% for p in perfis %}{% include "_card.html" %}{% else %}<p class="mut">Fila vazia.</p>{% endfor %}</div>
+{% endblock %}

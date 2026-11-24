@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% from "_macros.html" import score, ig, tags %}
+{% block t %}Perfis{% endblock %}{% block c %}
+<h1>Todos os perfis <span class="mut small">({{perfis|length}})</span></h1>
+<form class="row card" method="get" style="margin-bottom:14px">
+ <div><label class="small mut">Busca</label><input name="q" value="{{q}}" placeholder="@, nome, cidade, público..."></div>
+ <div><label class="small mut">Status</label><select name="status"><option value="">todos</option>{% for k,v in STATUS.items() %}<option value="{{k}}" {{'selected' if k==status}}>{{v}}</option>{% endfor %}</select></div>
+ <div><label class="small mut">Ordenar</label><select name="ordem">{% for k,v in [('score','nota'),('recentes','recentes'),('seguidores','seguidores'),('views','views stories')] %}<option value="{{k}}" {{'selected' if k==ordem}}>{{v}}</option>{% endfor %}</select></div>
+ <button>Filtrar</button> <a class="btn" href="/exportar.csv{% if status %}?status={{status}}{% endif %}">Exportar CSV</a>
+</form>
+<table><tr><th>Perfil</th><th>Status</th><th class="num">Seg.</th><th class="num">Views reels</th><th class="num">Stories est.</th><th class="num">Stories real</th><th>Cidade</th><th>Público</th><th>Nota</th></tr>
+{% for p in perfis %}<tr><td>{{ig(p.username)}}{% if p.referencia %} <span class="tag">ref: {{p.referencia}}</span>{% endif %}</td><td><span class="st">{{STATUS[p.status]}}</span></td>
+<td class="num">{{p.seguidores|n}}</td><td class="num">{{p.media_views_reels|n}}</td><td class="num">{{p.story_views_estimado|n}}</td><td class="num">{{p.story_views_real|n}}</td>
+<td>{{p.cidade or '—'}}{% if p.uf %}/{{p.uf}}{% endif %}</td><td>{{tags(p.publicos)}}</td><td>{{score(p.score)}}</td></tr>
+{% else %}<tr><td colspan="9" class="mut">Nenhum perfil.</td></tr>{% endfor %}</table>
+{% endblock %}

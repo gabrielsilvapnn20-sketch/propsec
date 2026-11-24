@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% from "_macros.html" import score, ig, tags %}
+{% block t %}Início{% endblock %}{% block c %}
+<h1>Visão geral</h1>
+<div class="grid k">
+ <a class="card kpi" href="/fila"><div class="v">{{kpis.fila}}</div><div class="l">aguardando aprovação</div></a>
+ <div class="card kpi"><div class="v">{{kpis.semana}}</div><div class="l">perfis achados (7 dias)</div></div>
+ <div class="card kpi"><div class="v">{{kpis.aprovados}}</div><div class="l">aprovados p/ contato</div></div>
+ <div class="card kpi"><div class="v">{{kpis.contatados}}</div><div class="l">mensagens enviadas</div></div>
+ <div class="card kpi"><div class="v">{{kpis.taxa_resposta}}%</div><div class="l">taxa de resposta ({{kpis.responderam}})</div></div>
+ <div class="card kpi"><div class="v">{{kpis.taxa_fechamento}}%</div><div class="l">taxa de fechamento ({{kpis.fechados}})</div></div>
+ <div class="card kpi"><div class="v">{{kpis.views_media|n}}</div><div class="l">views médias reais nos stories ({{kpis.views_n}} informadas)</div></div>
+</div>
+<div class="grid two">
+<div><h2>Melhores na fila</h2>
+<table><tr><th>Perfil</th><th class="num">Seg.</th><th>Cidade</th><th class="num">Stories (est.)</th><th>Nota</th></tr>
+{% for p in top %}<tr><td>{{ig(p.username)}}</td><td class="num">{{p.seguidores|n}}</td><td>{{p.cidade or '—'}}{% if p.uf %}/{{p.uf}}{% endif %}</td><td class="num">{{p.story_views_estimado|n}}</td><td>{{score(p.score)}}</td></tr>
+{% else %}<tr><td colspan="5" class="mut">Nada na fila. Rode o agente de prospecção.</td></tr>{% endfor %}</table>
+<h2>Funil</h2>
+<table>{% for s, nome, n in funil %}<tr><td><a href="/perfis?status={{s}}">{{nome}}</a></td><td class="num">{{n}}</td></tr>{% endfor %}</table>
+</div>
+<div><h2>Fontes que mais rendem</h2>
+<table><tr><th>Origem</th><th class="num">Perfis</th><th class="num">Bons (≥60)</th><th class="num">Fech.</th></tr>
+{% for f in fontes %}<tr><td>{{f.origem}} <span class="mut">{{f.detalhe}}</span></td><td class="num">{{f.perfis}}</td><td class="num">{{f.bons}}</td><td class="num">{{f.fechados}}</td></tr>
+{% else %}<tr><td colspan="4" class="mut">Sem dados ainda.</td></tr>{% endfor %}</table>
+<h2>Resposta por cidade</h2>
+<table><tr><th>Cidade</th><th class="num">Contatadas</th><th class="num">Resposta</th><th class="num">Fechamento</th></tr>
+{% for c in cidades %}<tr><td>{{c.chave}}</td><td class="num">{{c.contatados}}</td><td class="num">{{c.taxa_resposta}}%</td><td class="num">{{c.taxa_fechamento}}%</td></tr>
+{% else %}<tr><td colspan="4" class="mut">Sem contatos registrados ainda.</td></tr>{% endfor %}</table>
+</div></div>
+{% endblock %}

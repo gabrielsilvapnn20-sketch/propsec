@@ -1,0 +1,11 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block t %}PropSec{% endblock %} · PropSec</title><link rel="stylesheet" href="/static/style.css"></head><body>
+{% set path = request.url.path %}
+<nav><b>PropSec</b>
+<a href="/" class="{{'on' if path=='/'}}">Início</a>
+<a href="/fila" class="{{'on' if path.startswith('/fila')}}">Fila de aprovação</a>
+<a href="/pipeline" class="{{'on' if path.startswith('/pipeline')}}">Pipeline</a>
+<a href="/perfis" class="{{'on' if path.startswith('/perfis')}}">Todos os perfis</a>
+<a href="/referencias" class="{{'on' if path.startswith('/referencias')}}">Referências</a>
+<a href="/aprendizado" class="{{'on' if path.startswith('/aprendizado')}}">Aprendizado</a>
+</nav><main>{% block c %}{% endblock %}</main></body></html>

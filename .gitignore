@@ -1,0 +1,9 @@
+dados/*.db
+dados/*.db-*
+dados/backups/
+__pycache__/
+*.pyc
+.venv/
+referencias/prints/*
+!referencias/prints/.gitkeep
+.pytest_cache/

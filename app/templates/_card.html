@@ -1,0 +1,18 @@
+{% from "_macros.html" import score, ig, tags %}
+<div class="card pc">
+ <div style="display:flex;justify-content:space-between;gap:8px"><h3>{{ig(p.username)}}</h3>{{score(p.score)}}</div>
+ <div class="small mut">{{p.nome or ''}} · {{p.cidade or '?'}}{% if p.uf %}/{{p.uf}}{% endif %}</div>
+ <div class="small" style="margin-top:6px">
+  <b>{{p.seguidores|n}}</b> seg · reels <b>{{p.media_views_reels|n}}</b> views · <b>{{p.media_curtidas|n}}</b> curt · <b>{{p.media_comentarios|n}}</b> com
+  · stories est. <b>{{p.story_views_estimado|n}}</b>
+ </div>
+ <div style="margin-top:6px">{{tags(p.publicos)}}{{tags(p.tipo_conteudo)}}</div>
+ {% if p.observacoes %}<div class="small" style="margin-top:6px">{{p.observacoes}}</div>{% endif %}
+ <ul class="motivos">{% for m in p.score_motivos|motivos %}<li>{{m}}</li>{% endfor %}</ul>
+ <div class="small mut">origem: {{p.origem or '?'}} {{p.origem_detalhe or ''}}</div>
+ <div class="acts">
+  <form class="inline" method="post" action="/p/{{p.username}}/status"><input type="hidden" name="status" value="aprovado"><button class="ok">Aprovar</button></form>
+  <form class="inline" method="post" action="/p/{{p.username}}/status"><input type="hidden" name="status" value="descartado"><button class="x">Descartar</button></form>
+  <a class="btn" href="/p/{{p.username}}">Detalhes</a>
+ </div>
+</div>
