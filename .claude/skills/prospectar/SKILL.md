@@ -69,48 +69,50 @@ observações ("possivelmente agenciada"), mas pode salvar.
 - Cidades e hashtags do bloco 2 de `proximas-fontes`, principalmente quando as sugestões
   começarem a repetir perfis já vistos.
 
-## 3. Analisar um perfil (rápido e objetivo)
+## 3. Analisar um perfil — modo volume
 
-Meta: **1 a 2 minutos por perfil**. Prefira ler o texto da página (ferramenta de leitura de
-página) em vez de muitas capturas de tela. Não pense demais entre os passos.
+O nicho vive de **volume**: quase toda "blogueira" compatível é oportunidade. O que decide é
+o **estilo** (parecer com as fechadas) e a **faixa de seguidores**. Reels bombando é bônus,
+não requisito. Meta: decidir em **30–60 s** por perfil, sem travar em detalhes.
 
-**Etapa A — triagem (3 ações no máximo):** `liberar` → abrir o perfil → ler o topo
-(seguidores, bio, categoria) e a aba **Reels** (as views aparecem na grade).
-Descarte e salve como `ignorado` se:
-- menos de 1.000 seguidores; perfil privado; loja, página, homem, empresa; último post há
-  mais de 2 meses;
-- mais de 20.000 **e** sem cara das referências (acima de 20k só salve se for blogueira/mãe
-  com público engajado e stories ativos; escreva "caso especial");
-- seguidores claramente comprados (muitos seguidores, views/curtidas ínfimas, comentários de bot).
-```bash
-python propsec.py salvar - --status ignorado <<'JSON'
-{"username":"x","seguidores":42000,"observacoes":"fora da faixa","origem":"sugestoes","origem_detalhe":"semente"}
-JSON
-```
+**Passo único (obrigatório):** `liberar` → abrir o perfil → ler o topo (seguidores, nome,
+bio, categoria, destaques) → rolar a grade uma ou duas vezes. Se a aba **Reels** estiver a um
+clique, abra e anote a mediana das views que aparecem na grade (opcional). Não abra posts
+um por um, a não ser que esteja em dúvida.
 
-**Etapa B — análise (só para quem passou):** role a página com calma, abra 2–3 posts ou
-reels recentes e leia os comentários. Colete:
-- `media_views_reels`: **mediana** das views dos 9–12 reels mais recentes (ignore fixados);
-- `media_curtidas`, `media_comentarios`: médias dos posts abertos;
-- `comentarios_reais` (0 a 1): são pessoas conversando? ela responde?;
-- `posts_por_semana`, `stories_ativos` (anel colorido / destaques recentes),
-  `faz_publi`, `marca_lojas`, `contato`, `link_bio`, `cidade`, `uf`, `bio`;
-- `publicos` (etiquetas livres: mãe, maternidade, mulher de preso, moda, beleza, humor,
-  forró, praia, lifestyle, interior...), `tipo_conteudo`, `hashtags`;
-- `observacoes`: 1–2 frases dizendo **por que** lembra as referências.
+**Nota de estilo (`estilo_blogueira`, 0 a 1)** — compare com as fechadas:
+- **1.0** — igual às fechadas: mulher, selfies/looks/rotina, se apresenta como blogueira/
+  criadora ou "parcerias no direct", stories/destaques ativos, cara de conhecida na cidade.
+- **0.7** — perfil pessoal ativo de mulher, fotos produzidas, "paga de blogueira", mas sem
+  falar em parceria.
+- **0.4** — perfil pessoal comum, poucos sinais de blogueira.
+- **0–0.2** — não é o estilo: loja, página, homem, empresa, perfil abandonado, famosa grande.
 
-Campo que você não viu: **omita** (não invente, não ponha 0).
+**Salvar como `novo`** se estilo ≥ 0.6 **e** seguidores ≥ 1.000 (ideal 3.500+; acima de
+20.000 também vale se o estilo for 0.8+). Caso contrário, salve como `ignorado` com o motivo
+(para não revisitar). Seguidores comprados (milhares de seguidores, curtidas/views ínfimas,
+comentários de bot) → `ignorado`.
+
+Colete o que estiver **visível sem esforço**: `seguidores`, `seguindo`, `posts`, `nome`,
+`bio`, `cidade`/`uf`, `estilo_blogueira`, `stories_ativos` (anel colorido ou destaques
+recentes), `faz_publi` (publi/recebidos/lojas marcadas visíveis), `contato`, `link_bio`,
+`publicos` (mãe, maternidade, mulher de preso, moda, beleza, humor, forró, praia,
+lifestyle, interior...), `media_views_reels` se viu, e `observacoes` com 1 frase de por que
+lembra as fechadas. Campo que você não viu: **omita**.
 
 ```bash
 python propsec.py salvar - <<'JSON'
 {"username": "maria.blog", "nome": "Maria", "cidade": "Codó", "uf": "MA",
- "seguidores": 6200, "seguindo": 900, "posts": 41,
- "media_views_reels": 4800, "media_curtidas": 380, "media_comentarios": 35,
- "comentarios_reais": 0.8, "stories_ativos": 1, "faz_publi": 1,
- "bio": "...", "publicos": ["mãe", "moda"], "tipo_conteudo": "rotina, provador",
- "observacoes": "...", "origem": "sugestoes", "origem_detalhe": "joicimara"}
+ "seguidores": 6200, "seguindo": 900, "posts": 41, "estilo_blogueira": 0.9,
+ "stories_ativos": 1, "faz_publi": 1, "bio": "...", "publicos": ["mãe", "moda"],
+ "media_views_reels": 4800,
+ "observacoes": "mãe, looks e provador de loja local, parcerias no direct",
+ "origem": "sugestoes", "origem_detalhe": "joicimara"}
 JSON
 ```
+
+Se o usuário pedir **modo detalhado**, além disso abra 2–3 posts/reels e colete
+`media_curtidas`, `media_comentarios` e `comentarios_reais` (0 a 1).
 
 **O que as fechadas têm em comum** (`referencias/referencias_iniciais.json`): categoria
 "Blogueiro(a)"/"Criador de conteúdo digital", "parcerias no direct", muitas são **mães**,

@@ -137,6 +137,7 @@ def recalibrar(con, aplicar=True):
         historico.append({"em": db.agora(), "pesos": pesos, "taxa_stories_base": cfg["taxa_stories_base"]})
         db.set_config(con, "historico_pesos", historico[-30:])
         db.set_config(con, "pesos", novos)
+        db.set_config(con, "modelo_versao", scoring.MODELO_VERSAO)
         params = db.get_config(con, "parametros", {}) or {}
         params["taxa_stories_base"] = novo_cfg["taxa_stories_base"]
         db.set_config(con, "parametros", params)

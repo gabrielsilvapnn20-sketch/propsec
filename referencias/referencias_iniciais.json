@@ -1,92 +1,379 @@
 {
-  "_sobre": "Parcerias fechadas enviadas pelo usuário em prints (25/11/2026). Dados lidos dos prints; o agente completa o resto visitando os perfis. 'alto' = mais de R$ 1.000 de lucro em um dia; 'medio' = R$ 200–500 no dia.",
-  "perfis": [
-    {"username": "gauannelacerda", "nome": "Gauanne Lacerda", "posts": 31, "seguidores": 9652, "seguindo": 2263,
-     "stories_ativos": 1, "publicos": ["lifestyle", "fotos sensuais/praia"],
-     "observacoes": "Resultado ESTRONDOSO: mais de R$ 1.000 de lucro em 1 dia. Sem bio, poucos posts, selfies e fotos de praia/piscina. Seguida pela fly.creators.br.",
-     "resultado_nivel": "alto", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "tamillymacedo_", "nome": "Tamy Macedo", "posts": 67, "seguidores": 3250, "seguindo": 1508,
-     "bio": "Criador de conteúdo digital | Ajudo marcas a se conectarem com pessoas e conquistarem clientes. | Publicidade | Locução | Parcerias e trabalhos",
-     "stories_ativos": 1, "faz_publi": 1, "marca_lojas": 1, "contato": "direct",
-     "publicos": ["lojas locais", "provador", "lifestyle"], "tipo_conteudo": "publi de lojas e farmácia, provador, caixa misteriosa, POV",
-     "observacoes": "Resultado ESTRONDOSO: mais de R$ 1.000 de lucro em 1 dia. Destaques: Entrevista, Viagens, Provadores, Parcerias. Seguida por fly.creators.br e joice_balneario_saobento.",
-     "resultado_nivel": "alto", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "samara_reggina_", "nome": "Sammy Reggiz", "posts": 61, "seguidores": 78500, "seguindo": 3107,
-     "bio": "Blogueiro(a) | Mãe de primeira viagem | Escritora e Blogueira | Perfil 2° @samara_regiz_",
-     "stories_ativos": 1, "publicos": ["mãe", "maternidade"], "tipo_conteudo": "maternidade, bebê, casal",
-     "observacoes": "Resultado ESTRONDOSO: mais de R$ 1.000 de lucro em 1 dia. Fora da faixa (78,5 mil), mas deu muito certo. Destaques Filho, Vaquinha. Tem 2º perfil @samara_regiz_.",
-     "resultado_nivel": "alto", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "lay_ruivinha288", "nome": "Layanne Silva", "posts": 195, "seguidores": 5464, "seguindo": 3640,
-     "bio": "Blogueiro(a) | quem nasceu para brilhar, incomoda quem vive no escuro | FORROZEIRA | mamãe de dois anjinhos | @_lay__silva23",
-     "link_bio": "688v.work/?a=0koyizb9", "publicos": ["mãe", "forró/dança"], "tipo_conteudo": "forró, dança, festas",
-     "observacoes": "Resultado ESTRONDOSO: mais de R$ 1.000 de lucro em 1 dia. Seguida pela hub.influ.br. Destaques forrozão, Dança.",
-     "resultado_nivel": "alto", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-
-    {"username": "mayarakellyoli", "nome": "Mayara Kelly", "posts": 109, "seguidores": 5393, "seguindo": 946,
-     "bio": "Lifestyle | DC | GRATA! | \"Acredita colega\" | Parceiras via direct", "contato": "direct",
-     "publicos": ["lifestyle", "mãe"], "tipo_conteudo": "selfies, looks, fotos com criança",
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Seguida pela fly.creators.br. Destaques Ídolas, M.k, DC.",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "andressa.nunes.2", "nome": "Andressa Nunes", "posts": 37, "seguidores": 1451, "seguindo": 535,
-     "bio": "Blogueiro(a) | Ariquemes - RO | Lifestyle | Humor | Tendências | Deus acima de tudo | em busca de um sonho",
-     "cidade": "Ariquemes", "uf": "RO", "publicos": ["lifestyle", "humor", "mãe"], "tipo_conteudo": "reels de humor e cidade, lifestyle",
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Perfil pequeno (1.451) que funcionou. Destaque 'minha princ...' (filha).",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "larasi1va", "nome": "Larinha", "posts": 498, "seguidores": 21100, "seguindo": 14,
-     "bio": "Frases|Dicas|Moda | Modelo Fotográfica & \"Influencer\" | Parcerias no direct",
-     "stories_ativos": 1, "faz_publi": 1, "contato": "direct", "publicos": ["moda", "frases/POV"],
-     "tipo_conteudo": "reels POV com frases, rotina, moda",
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Destaques PARCERIAS, Links, Plano B Anps. Seguida por stefany_rodriguesbj.",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "brabaaa_00", "posts": 19, "seguidores": 10100, "seguindo": 925,
-     "bio": "Predestinada | Fortal-CE | Praiana | Mamãe do L.Levi e A.Miguel",
-     "cidade": "Fortaleza", "uf": "CE", "publicos": ["mãe", "praia"], "tipo_conteudo": "fotos de praia, looks",
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Poucos posts. Seguida por bkzinhaa_ (também fechada).",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "w1_clara", "nome": "Clara Silva", "posts": 113, "seguidores": 15200, "seguindo": 959,
-     "bio": "Fotógrafo(a) | #sl | Anajatuba | @w1_Dailyyy | God is Life", "link_bio": "tiktok.com/@clarinhaa...",
-     "cidade": "Anajatuba", "uf": "MA", "stories_ativos": 1, "publicos": ["interior", "fotos sensuais"],
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Interior do Maranhão. Tem TikTok.",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "zz_isahsorrisoo", "nome": "Isadora", "posts": 190, "seguidores": 139000, "seguindo": 534,
-     "bio": "Criador de conteúdo digital | Gerente de influenciadores | Perícia criminal | Dinheiro traz sim felicidade | Tiktok (+80K)",
-     "stories_ativos": 1, "publicos": ["lifestyle", "fitness"],
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Muito acima da faixa (139 mil). Diz ser 'gerente de influenciadores': pode indicar outras.",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "__raissa__2", "nome": "Raissa Silva", "posts": 54, "seguidores": 3616, "seguindo": 1388,
-     "stories_ativos": 1, "publicos": ["humor", "família"], "tipo_conteudo": "reels de humor com a família, live, POV",
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Seguida pela fly.creators.br. Conteúdo de humor do dia a dia.",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "carolineealvex", "nome": "Caroline Alves", "posts": 7, "seguidores": 6854, "seguindo": 5886,
-     "bio": "Criador de conteúdo digital | Digital Influencer | LifeStyler | D•M | FNB", "link_bio": "tiktok.com/@carolineealvex22",
-     "stories_ativos": 1, "publicos": ["beleza", "casal"], "tipo_conteudo": "beleza (sobrancelha, cabelo), casal",
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Só 7 posts. Segue muita gente (5.886).",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "bkzinhaa_", "posts": 6, "seguidores": 5142, "seguindo": 2204,
-     "bio": "Nada explica Deus", "stories_ativos": 1, "publicos": ["lifestyle"], "tipo_conteudo": "reels com frases, selfies",
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Só 6 posts. Seguida por brabaaa_00 e demelpandorinha.",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "annaindiareal", "nome": "Anna", "posts": 19, "seguidores": 5097, "seguindo": 1378,
-     "bio": "Mãe da Manu | Beleza • maternidade • lifestyle | Tentando ser blogueira sem saber por onde começar",
-     "stories_ativos": 1, "publicos": ["mãe", "maternidade", "beleza"], "tipo_conteudo": "selfies, looks, filha",
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Exemplo clássico de 'paga de blogueira'.",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"},
-    {"username": "eufadaof", "nome": "Rayza Souza", "posts": 164, "seguidores": 47600, "seguindo": 1464,
-     "bio": "A fadinha original | João Pessoa | Mamãe da Ana Maitê | @mansaopegandofogo7",
-     "cidade": "João Pessoa", "uf": "PB", "stories_ativos": 1, "publicos": ["mãe", "fotos sensuais/praia"],
-     "observacoes": "Resultado médio (R$ 200–500 no dia). Verificada, 47,6 mil. Ligada a @mansaopegandofogo7. Seguida por cllarinhaof4.",
-     "resultado_nivel": "medio", "referencia": "fechado", "status": "fechado", "origem": "referencia", "origem_detalhe": "print"}
-  ],
-  "fontes": [
-    {"tipo": "agencia", "valor": "fly.creators.br", "nota": "segue 5 das fechadas; ver a lista 'seguindo' dela"},
-    {"tipo": "agencia", "valor": "hub.influ.br", "nota": "segue lay_ruivinha288 (resultado alto)"},
-    {"tipo": "similar", "valor": "stefany_rodriguesbj", "nota": "aparece como seguidora em comum de larasi1va; verificar o próprio perfil"},
-    {"tipo": "similar", "valor": "demelpandorinha", "nota": "segue bkzinhaa_; verificar"},
-    {"tipo": "similar", "valor": "cllarinhaof4", "nota": "segue eufadaof; verificar"},
-    {"tipo": "similar", "valor": "lilianreeis_", "nota": "segue samara_reggina_; verificar"},
-    {"tipo": "similar", "valor": "kayllanee_costaa", "nota": "segue samara_reggina_; verificar"},
-    {"tipo": "similar", "valor": "joice_balneario_saobento", "nota": "segue tamillymacedo_"},
-    {"tipo": "similar", "valor": "samara_regiz_", "nota": "2º perfil da samara_reggina_ (alto)"},
-    {"tipo": "similar", "valor": "mansaopegandofogo7", "nota": "ligado à eufadaof; ver participantes"}
-  ]
+ "_sobre": "Parcerias fechadas enviadas pelo usuário em prints (25/11/2026). Dados lidos dos prints; o agente completa o resto visitando os perfis. 'alto' = mais de R$ 1.000 de lucro em um dia; 'medio' = R$ 200–500 no dia.",
+ "perfis": [
+  {
+   "username": "gauannelacerda",
+   "nome": "Gauanne Lacerda",
+   "posts": 31,
+   "seguidores": 9652,
+   "seguindo": 2263,
+   "stories_ativos": 1,
+   "publicos": [
+    "lifestyle",
+    "fotos sensuais/praia"
+   ],
+   "observacoes": "Resultado ESTRONDOSO: mais de R$ 1.000 de lucro em 1 dia. Sem bio, poucos posts, selfies e fotos de praia/piscina. Seguida pela fly.creators.br.",
+   "resultado_nivel": "alto",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "tamillymacedo_",
+   "nome": "Tamy Macedo",
+   "posts": 67,
+   "seguidores": 3250,
+   "seguindo": 1508,
+   "bio": "Criador de conteúdo digital | Ajudo marcas a se conectarem com pessoas e conquistarem clientes. | Publicidade | Locução | Parcerias e trabalhos",
+   "stories_ativos": 1,
+   "faz_publi": 1,
+   "marca_lojas": 1,
+   "contato": "direct",
+   "publicos": [
+    "lojas locais",
+    "provador",
+    "lifestyle"
+   ],
+   "tipo_conteudo": "publi de lojas e farmácia, provador, caixa misteriosa, POV",
+   "observacoes": "Resultado ESTRONDOSO: mais de R$ 1.000 de lucro em 1 dia. Destaques: Entrevista, Viagens, Provadores, Parcerias. Seguida por fly.creators.br e joice_balneario_saobento.",
+   "resultado_nivel": "alto",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "samara_reggina_",
+   "nome": "Sammy Reggiz",
+   "posts": 61,
+   "seguidores": 78500,
+   "seguindo": 3107,
+   "bio": "Blogueiro(a) | Mãe de primeira viagem | Escritora e Blogueira | Perfil 2° @samara_regiz_",
+   "stories_ativos": 1,
+   "publicos": [
+    "mãe",
+    "maternidade"
+   ],
+   "tipo_conteudo": "maternidade, bebê, casal",
+   "observacoes": "Resultado ESTRONDOSO: mais de R$ 1.000 de lucro em 1 dia. Fora da faixa (78,5 mil), mas deu muito certo. Destaques Filho, Vaquinha. Tem 2º perfil @samara_regiz_.",
+   "resultado_nivel": "alto",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "lay_ruivinha288",
+   "nome": "Layanne Silva",
+   "posts": 195,
+   "seguidores": 5464,
+   "seguindo": 3640,
+   "bio": "Blogueiro(a) | quem nasceu para brilhar, incomoda quem vive no escuro | FORROZEIRA | mamãe de dois anjinhos | @_lay__silva23",
+   "link_bio": "688v.work/?a=0koyizb9",
+   "publicos": [
+    "mãe",
+    "forró/dança"
+   ],
+   "tipo_conteudo": "forró, dança, festas",
+   "observacoes": "Resultado ESTRONDOSO: mais de R$ 1.000 de lucro em 1 dia. Seguida pela hub.influ.br. Destaques forrozão, Dança.",
+   "resultado_nivel": "alto",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "mayarakellyoli",
+   "nome": "Mayara Kelly",
+   "posts": 109,
+   "seguidores": 5393,
+   "seguindo": 946,
+   "bio": "Lifestyle | DC | GRATA! | \"Acredita colega\" | Parceiras via direct",
+   "contato": "direct",
+   "publicos": [
+    "lifestyle",
+    "mãe"
+   ],
+   "tipo_conteudo": "selfies, looks, fotos com criança",
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Seguida pela fly.creators.br. Destaques Ídolas, M.k, DC.",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "andressa.nunes.2",
+   "nome": "Andressa Nunes",
+   "posts": 37,
+   "seguidores": 1451,
+   "seguindo": 535,
+   "bio": "Blogueiro(a) | Ariquemes - RO | Lifestyle | Humor | Tendências | Deus acima de tudo | em busca de um sonho",
+   "cidade": "Ariquemes",
+   "uf": "RO",
+   "publicos": [
+    "lifestyle",
+    "humor",
+    "mãe"
+   ],
+   "tipo_conteudo": "reels de humor e cidade, lifestyle",
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Perfil pequeno (1.451) que funcionou. Destaque 'minha princ...' (filha).",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "larasi1va",
+   "nome": "Larinha",
+   "posts": 498,
+   "seguidores": 21100,
+   "seguindo": 14,
+   "bio": "Frases|Dicas|Moda | Modelo Fotográfica & \"Influencer\" | Parcerias no direct",
+   "stories_ativos": 1,
+   "faz_publi": 1,
+   "contato": "direct",
+   "publicos": [
+    "moda",
+    "frases/POV"
+   ],
+   "tipo_conteudo": "reels POV com frases, rotina, moda",
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Destaques PARCERIAS, Links, Plano B Anps. Seguida por stefany_rodriguesbj.",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "brabaaa_00",
+   "posts": 19,
+   "seguidores": 10100,
+   "seguindo": 925,
+   "bio": "Predestinada | Fortal-CE | Praiana | Mamãe do L.Levi e A.Miguel",
+   "cidade": "Fortaleza",
+   "uf": "CE",
+   "publicos": [
+    "mãe",
+    "praia"
+   ],
+   "tipo_conteudo": "fotos de praia, looks",
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Poucos posts. Seguida por bkzinhaa_ (também fechada).",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "w1_clara",
+   "nome": "Clara Silva",
+   "posts": 113,
+   "seguidores": 15200,
+   "seguindo": 959,
+   "bio": "Fotógrafo(a) | #sl | Anajatuba | @w1_Dailyyy | God is Life",
+   "link_bio": "tiktok.com/@clarinhaa...",
+   "cidade": "Anajatuba",
+   "uf": "MA",
+   "stories_ativos": 1,
+   "publicos": [
+    "interior",
+    "fotos sensuais"
+   ],
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Interior do Maranhão. Tem TikTok.",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "zz_isahsorrisoo",
+   "nome": "Isadora",
+   "posts": 190,
+   "seguidores": 139000,
+   "seguindo": 534,
+   "bio": "Criador de conteúdo digital | Gerente de influenciadores | Perícia criminal | Dinheiro traz sim felicidade | Tiktok (+80K)",
+   "stories_ativos": 1,
+   "publicos": [
+    "lifestyle",
+    "fitness"
+   ],
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Muito acima da faixa (139 mil). Diz ser 'gerente de influenciadores': pode indicar outras.",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "__raissa__2",
+   "nome": "Raissa Silva",
+   "posts": 54,
+   "seguidores": 3616,
+   "seguindo": 1388,
+   "stories_ativos": 1,
+   "publicos": [
+    "humor",
+    "família"
+   ],
+   "tipo_conteudo": "reels de humor com a família, live, POV",
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Seguida pela fly.creators.br. Conteúdo de humor do dia a dia.",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "carolineealvex",
+   "nome": "Caroline Alves",
+   "posts": 7,
+   "seguidores": 6854,
+   "seguindo": 5886,
+   "bio": "Criador de conteúdo digital | Digital Influencer | LifeStyler | D•M | FNB",
+   "link_bio": "tiktok.com/@carolineealvex22",
+   "stories_ativos": 1,
+   "publicos": [
+    "beleza",
+    "casal"
+   ],
+   "tipo_conteudo": "beleza (sobrancelha, cabelo), casal",
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Só 7 posts. Segue muita gente (5.886).",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "bkzinhaa_",
+   "posts": 6,
+   "seguidores": 5142,
+   "seguindo": 2204,
+   "bio": "Nada explica Deus",
+   "stories_ativos": 1,
+   "publicos": [
+    "lifestyle"
+   ],
+   "tipo_conteudo": "reels com frases, selfies",
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Só 6 posts. Seguida por brabaaa_00 e demelpandorinha.",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "annaindiareal",
+   "nome": "Anna",
+   "posts": 19,
+   "seguidores": 5097,
+   "seguindo": 1378,
+   "bio": "Mãe da Manu | Beleza • maternidade • lifestyle | Tentando ser blogueira sem saber por onde começar",
+   "stories_ativos": 1,
+   "publicos": [
+    "mãe",
+    "maternidade",
+    "beleza"
+   ],
+   "tipo_conteudo": "selfies, looks, filha",
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Exemplo clássico de 'paga de blogueira'.",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  },
+  {
+   "username": "eufadaof",
+   "nome": "Rayza Souza",
+   "posts": 164,
+   "seguidores": 47600,
+   "seguindo": 1464,
+   "bio": "A fadinha original | João Pessoa | Mamãe da Ana Maitê | @mansaopegandofogo7",
+   "cidade": "João Pessoa",
+   "uf": "PB",
+   "stories_ativos": 1,
+   "publicos": [
+    "mãe",
+    "fotos sensuais/praia"
+   ],
+   "observacoes": "Resultado médio (R$ 200–500 no dia). Verificada, 47,6 mil. Ligada a @mansaopegandofogo7. Seguida por cllarinhaof4.",
+   "resultado_nivel": "medio",
+   "referencia": "fechado",
+   "status": "fechado",
+   "origem": "referencia",
+   "origem_detalhe": "print",
+   "estilo_blogueira": 1
+  }
+ ],
+ "fontes": [
+  {
+   "tipo": "agencia",
+   "valor": "fly.creators.br",
+   "nota": "segue 5 das fechadas; ver a lista 'seguindo' dela"
+  },
+  {
+   "tipo": "agencia",
+   "valor": "hub.influ.br",
+   "nota": "segue lay_ruivinha288 (resultado alto)"
+  },
+  {
+   "tipo": "similar",
+   "valor": "stefany_rodriguesbj",
+   "nota": "aparece como seguidora em comum de larasi1va; verificar o próprio perfil"
+  },
+  {
+   "tipo": "similar",
+   "valor": "demelpandorinha",
+   "nota": "segue bkzinhaa_; verificar"
+  },
+  {
+   "tipo": "similar",
+   "valor": "cllarinhaof4",
+   "nota": "segue eufadaof; verificar"
+  },
+  {
+   "tipo": "similar",
+   "valor": "lilianreeis_",
+   "nota": "segue samara_reggina_; verificar"
+  },
+  {
+   "tipo": "similar",
+   "valor": "kayllanee_costaa",
+   "nota": "segue samara_reggina_; verificar"
+  },
+  {
+   "tipo": "similar",
+   "valor": "joice_balneario_saobento",
+   "nota": "segue tamillymacedo_"
+  },
+  {
+   "tipo": "similar",
+   "valor": "samara_regiz_",
+   "nota": "2º perfil da samara_reggina_ (alto)"
+  },
+  {
+   "tipo": "similar",
+   "valor": "mansaopegandofogo7",
+   "nota": "ligado à eufadaof; ver participantes"
+  }
+ ]
 }

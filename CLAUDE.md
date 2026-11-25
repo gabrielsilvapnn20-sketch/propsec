@@ -2,10 +2,11 @@
 
 ## A operação
 Buscamos influenciadoras **de menor porte** no Instagram para parcerias:
-- Faixa principal: **1.500 a 10.000 seguidores**. Casos especiais: até 15.000–20.000.
-- O que mais importa: **views nos stories**. Ninguém de fora vê isso, então usamos sinais
-  públicos que andam junto: views dos reels ÷ seguidores, engajamento, comentários de gente
-  real, constância, stories ativos.
+- **Volume é o que importa**: quase toda "blogueira" compatível é oportunidade. O critério
+  principal é o **estilo** (parecer com as fechadas) + faixa de seguidores.
+- Seguidores: ideal **3.500 a 20.000**; vale a partir de ~1.000 e acima de 20k se o estilo for forte
+  (fechadas com 1.451, 47k e 78k deram resultado).
+- Views de reels/engajamento são bônus, não requisito. Poucos posts no feed é normal.
 - Prospecção **aberta**: muitas "pagam de blogueira" — público pequeno mas ativo, conhecida na
   cidade/região, interage, às vezes já faz outras parcerias. Forte no **Maranhão** (cidades do
   interior incluídas), mas não só.

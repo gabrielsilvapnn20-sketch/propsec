@@ -233,7 +233,7 @@ async def acao_config(request: Request):
     con = db.conectar()
     form = await request.form()
     params = db.get_config(con, "parametros", {}) or {}
-    for k in ("faixa_min", "faixa_max", "faixa_especial_max"):
+    for k in ("faixa_min", "faixa_ideal_min", "faixa_max", "faixa_especial_max"):
         if form.get(k):
             params[k] = int(form[k])
     if form.get("ufs_prioritarias") is not None:

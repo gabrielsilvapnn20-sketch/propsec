@@ -11,18 +11,24 @@ import json
 
 from . import db
 
+# Modelo v2 ("volume"): o que mais pesa é o perfil ter o ESTILO das fechadas e estar numa
+# faixa de seguidores boa. Reels/engajamento ajudam, mas não são obrigatórios — o nicho vive
+# de volume e quase toda "blogueira" compatível é oportunidade.
+MODELO_VERSAO = 2
 PESOS_PADRAO = {
-    "faixa": 1.0,             # está na faixa de seguidores que vocês buscam
-    "alcance_reels": 3.0,     # views médias dos reels ÷ seguidores (melhor proxy de stories)
-    "engajamento": 2.0,       # (curtidas + comentários) ÷ seguidores
-    "comentarios": 1.5,       # volume e autenticidade dos comentários
-    "stories_ativos": 1.5,    # posta stories com frequência
-    "constancia": 0.3,        # posts por semana (fechadas com 6–30 posts deram resultado: pesa pouco)
-    "perfil_blogueira": 1.0,  # já faz publi, marca lojas, tem contato na bio
-    "regiao": 0.5,            # está numa região prioritária
+    "estilo": 4.0,            # compatível com o estilo das referências (avaliação do agente, 0–1)
+    "faixa": 2.0,             # seguidores: ideal 3.500–20.000, aceita 1.000–50.000+
+    "perfil_blogueira": 1.5,  # categoria blogueira/criadora, "parcerias no direct", publi, contato
+    "stories_ativos": 1.0,    # posta stories
+    "alcance_reels": 1.0,     # mediana de views dos reels ÷ seguidores (bônus, não obrigatório)
+    "engajamento": 0.8,       # (curtidas + comentários) ÷ seguidores
+    "comentarios": 0.8,       # comentários de gente real
+    "regiao": 0.5,            # região prioritária
+    "constancia": 0.2,        # posts por semana (quase não importa)
 }
 
 NOMES = {
+    "estilo": "Estilo das fechadas",
     "faixa": "Faixa de seguidores",
     "alcance_reels": "Alcance dos reels",
     "engajamento": "Engajamento",
@@ -34,13 +40,14 @@ NOMES = {
 }
 
 CONFIG_PADRAO = {
-    "faixa_min": 1500,
-    "faixa_max": 10000,
-    "faixa_especial_max": 20000,
+    "faixa_min": 1000,            # abaixo disso: fora
+    "faixa_ideal_min": 3500,      # de faixa_ideal_min a faixa_max: nota cheia
+    "faixa_max": 20000,
+    "faixa_especial_max": 50000,  # acima de faixa_max até aqui: ainda vale (fechadas com 47k e 78k)
     "ufs_prioritarias": ["MA"],
-    "valor_desconhecido": 0.4,   # quanto vale um sinal que o agente não conseguiu medir
-    "taxa_stories_base": 0.10,   # calibrada pelo aprendizado
-    "penalidade_fora_faixa": 0.6,  # multiplicador da nota fora de 1.000–20.000 (há fechadas com 47k–139k)
+    "valor_desconhecido": 0.5,    # sinal não medido conta como neutro (modo volume)
+    "taxa_stories_base": 0.10,    # calibrada pelo aprendizado
+    "penalidade_fora_faixa": 0.3, # só abaixo de faixa_min
 }
 
 
@@ -52,7 +59,15 @@ def _num(v):
 
 
 def carregar(con):
+    if db.get_config(con, "modelo_versao") != MODELO_VERSAO:
+        # modelo mudou: descarta pesos/faixas antigos, mantém o que foi aprendido de stories e UFs
+        antigos = db.get_config(con, "parametros") or {}
+        manter = {k: antigos[k] for k in ("taxa_stories_base", "ufs_prioritarias") if k in antigos}
+        db.set_config(con, "pesos", dict(PESOS_PADRAO))
+        db.set_config(con, "parametros", manter)
+        db.set_config(con, "modelo_versao", MODELO_VERSAO)
     pesos = {**PESOS_PADRAO, **(db.get_config(con, "pesos") or {})}
+    pesos = {k: v for k, v in pesos.items() if k in PESOS_PADRAO}
     cfg = {**CONFIG_PADRAO, **(db.get_config(con, "parametros") or {})}
     return pesos, cfg
 
@@ -62,18 +77,22 @@ def componentes(p, cfg) -> dict[str, float | None]:
     seg = _num(p["seguidores"])
     c: dict[str, float | None] = {k: None for k in PESOS_PADRAO}
 
+    est = _num(p["estilo_blogueira"])
+    if est is not None:
+        c["estilo"] = max(0.0, min(1.0, est))
+
     if seg:
-        lo, hi, esp = cfg["faixa_min"], cfg["faixa_max"], cfg["faixa_especial_max"]
-        if lo <= seg <= hi:
-            c["faixa"] = 1.0
-        elif hi < seg <= (hi + esp) / 2:
-            c["faixa"] = 0.7
-        elif seg <= esp and seg > hi:
-            c["faixa"] = 0.45
-        elif lo * 0.66 <= seg < lo:
-            c["faixa"] = 0.5
-        else:
+        lo, ideal, hi, esp = cfg["faixa_min"], cfg["faixa_ideal_min"], cfg["faixa_max"], cfg["faixa_especial_max"]
+        if seg < lo:
             c["faixa"] = 0.0
+        elif seg < ideal:  # sobe de 0.5 (no mínimo) até 1.0 (no ideal)
+            c["faixa"] = 0.5 + 0.5 * (seg - lo) / max(ideal - lo, 1)
+        elif seg <= hi:
+            c["faixa"] = 1.0
+        elif seg <= esp:
+            c["faixa"] = 0.7
+        else:
+            c["faixa"] = 0.5
 
         views = _num(p["media_views_reels"])
         if views is not None:
@@ -100,6 +119,9 @@ def componentes(p, cfg) -> dict[str, float | None]:
         c["constancia"] = min(1.0, ppw / 4)
 
     sinais = []
+    texto = " ".join(str(p[k] or "") for k in ("bio", "tipo_conteudo")).lower()
+    if any(t in texto for t in ("blogueir", "criador de conte", "influenc", "parceria", "publi")):
+        sinais.append(1.0)
     if p["faz_publi"] is not None:
         sinais.append(float(int(p["faz_publi"])))
     if p["marca_lojas"] is not None:

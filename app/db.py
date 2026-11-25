@@ -37,11 +37,11 @@ CAMPOS_PERFIL = [
     "publicos", "hashtags", "tipo_conteudo", "suspeita_compra",
     "observacoes", "origem", "origem_detalhe",
     "story_views_real", "story_views_informado_em", "valor_parceria",
-    "qualidade_manual", "referencia", "lucro_dia", "resultado_nivel",
+    "qualidade_manual", "referencia", "lucro_dia", "resultado_nivel", "estilo_blogueira",
 ]
 
 # Colunas adicionadas depois da primeira versão (migração automática)
-COLUNAS_NOVAS = {"lucro_dia": "REAL", "resultado_nivel": "TEXT"}
+COLUNAS_NOVAS = {"lucro_dia": "REAL", "resultado_nivel": "TEXT", "estilo_blogueira": "REAL"}
 NIVEIS_RESULTADO = {"alto": "Alto (R$ 1.000+/dia)", "medio": "Médio (R$ 200–500/dia)", "baixo": "Baixo"}
 
 SCHEMA = """
@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS perfis (
     referencia TEXT,                 -- fechado / gostamos / NULL
     lucro_dia REAL,                  -- lucro em R$ no dia da parceria
     resultado_nivel TEXT,            -- alto / medio / baixo
+    estilo_blogueira REAL,           -- 0 a 1: quanto lembra o estilo das fechadas (avaliação do agente)
     criado_em TEXT NOT NULL, atualizado_em TEXT NOT NULL, verificado_em TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_perfis_status ON perfis(status);

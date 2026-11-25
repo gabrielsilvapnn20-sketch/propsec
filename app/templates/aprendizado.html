@@ -13,9 +13,10 @@
 </div>
 <form class="card" method="post" action="/config"><h2 style="margin-top:0">Configuração</h2>
 <div class="fields">
-<div><label>Seguidores mín.</label><input name="faixa_min" value="{{cfg.faixa_min}}"></div>
-<div><label>Seguidores máx. (normal)</label><input name="faixa_max" value="{{cfg.faixa_max}}"></div>
-<div><label>Máx. casos especiais</label><input name="faixa_especial_max" value="{{cfg.faixa_especial_max}}"></div>
+<div><label>Seguidores mínimo</label><input name="faixa_min" value="{{cfg.faixa_min}}"></div>
+<div><label>Faixa ideal: de</label><input name="faixa_ideal_min" value="{{cfg.faixa_ideal_min}}"></div>
+<div><label>Faixa ideal: até</label><input name="faixa_max" value="{{cfg.faixa_max}}"></div>
+<div><label>Ainda vale até</label><input name="faixa_especial_max" value="{{cfg.faixa_especial_max}}"></div>
 <div><label>UFs prioritárias</label><input name="ufs_prioritarias" value="{{cfg.ufs_prioritarias|join(', ')}}"></div>
 </div>
 <h2>Pesos manuais</h2><div class="fields">{% for k, v in pesos.items() %}<div><label>{{NOMES[k]}}</label><input name="peso_{{k}}" value="{{'%.2f'|format(v)}}"></div>{% endfor %}</div>
