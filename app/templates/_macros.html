@@ -1,6 +1,12 @@
 {% macro score(v) -%}
 <span class="score {{ 's-hi' if (v or 0) >= 65 else ('s-mid' if (v or 0) >= 45 else 's-lo') }}" title="Nota de 0 a 100">{{ '%.0f'|format(v or 0) }}</span>
 {%- endmacro %}
-{% macro ig(u) -%}<a href="/p/{{u}}">@{{u}}</a> <a class="small mut" href="https://instagram.com/{{u}}" target="_blank" rel="noopener" title="Abrir no Instagram">↗</a>{%- endmacro %}
+{% macro anel(v) -%}
+<span class="anel {{ 'hi' if (v or 0) >= 65 else ('lo' if (v or 0) < 45 else '') }}" style="--v:{{ (v or 0)|round|int }}" title="Nota de 0 a 100"><b>{{ '%.0f'|format(v or 0) }}</b></span>
+{%- endmacro %}
+{% macro ig(u) -%}<a href="/p/{{u}}">@{{u}}</a>{%- endmacro %}
 {% macro tags(s) -%}{% if s %}{% for t in s.split(',') %}{% if t.strip() %}<span class="tag">{{t.strip()}}</span>{% endif %}{% endfor %}{% endif %}{%- endmacro %}
 {% macro local(p) -%}{% if p.cidade %}{{p.cidade}}{% if p.uf %}/{{p.uf}}{% endif %}{% elif p.uf %}{{p.uf}}{% else %}<span class="mut">sem cidade</span>{% endif %}{%- endmacro %}
+{% macro cab(titulo, desc) -%}
+<header class="cab"><div><h1>{{titulo}}</h1>{% if desc %}<p class="desc">{{desc}}</p>{% endif %}</div>{% if caller %}<div class="acoes-cab">{{ caller() }}</div>{% endif %}</header>
+{%- endmacro %}

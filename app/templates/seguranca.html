@@ -1,67 +1,69 @@
 {% extends "base.html" %}{% block t %}Agente{% endblock %}{% block c %}
-<h1>Agente</h1>
-<p class="sub">Controle o ritmo do agente para proteger a conta. Ele pede permissão aqui antes de abrir cada perfil.</p>
+<header class="cab"><div><h1>Agente</h1><p class="desc">Controle o ritmo do agente para proteger a conta do Instagram. Ele pede permissão aqui antes de abrir cada perfil.</p></div></header>
 
-<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-width:2px;border-color:{{ 'var(--ok)' if pode else 'var(--bad)' }}">
+<section class="card estado-agente" style="border-color:{{ 'var(--ok)' if pode else 'var(--bad)' }}">
  <div>
-  <div style="font-size:20px;font-weight:700;color:{{ 'var(--ok)' if pode else 'var(--bad)' }}">{{ 'Liberado para trabalhar' if pode else 'Bloqueado' }}</div>
-  {% if not pode %}<div>{{motivo}}</div>{% endif %}
-  <div class="small mut">Último perfil aberto: {{ c.ultima[:16].replace('T',' ') if c.ultima else 'nenhum ainda' }}</div>
+  <div class="grande-tit" style="color:{{ 'var(--ok)' if pode else 'var(--bad)' }}">{{ 'Liberado para trabalhar' if pode else 'Bloqueado' }}</div>
+  {% if not pode %}<p>{{motivo}}</p>{% endif %}
+  <p class="small mut">Último perfil aberto {{ 'em ' ~ c.ultima[8:10] ~ '/' ~ c.ultima[5:7] ~ ' às ' ~ c.ultima[11:16] if c.ultima else ': nenhum ainda' }}</p>
  </div>
  {% if st.pausado %}
  <form method="post" action="/seguranca/retomar"><button class="ok grande">Liberar agente</button></form>
  {% else %}
- <form method="post" action="/seguranca/parar"><button class="grande" style="background:var(--bad);border-color:var(--bad);color:var(--on-ac)">Parar agente</button></form>
+ <form method="post" action="/seguranca/parar"><button class="perigo grande">Parar agente</button></form>
  {% endif %}
+</section>
+
+<section class="secao">
+ <div class="tit"><h2>Ritmo</h2><p>Quanto mais rápido, maior o risco de bloqueio</p></div>
+ <div class="modos">
+ {% for k, nome, desc in [('cautela','Cautela','Até 30 perfis por dia. Use na primeira semana da conta.'),('normal','Normal','Até 60 perfis por dia.'),('acelerado','Acelerado','Até 120 perfis por dia, com mais risco.')] %}
+  <form method="post" action="/seguranca/perfil/{{k}}" class="card modo {{'destaque' if modo==k}}">
+   <h3>{{nome}}</h3><p class="small mut">{{desc}}</p>
+   {% if modo==k %}<span class="em-uso">Em uso</span>{% else %}<button>Usar este ritmo</button>{% endif %}
+  </form>
+ {% endfor %}
+ </div>
+ {% if modo == 'personalizado' %}<p class="small mut" style="margin-top:8px">Ritmo personalizado, ajustado em Avançado.</p>{% endif %}
+</section>
+
+<section class="secao">
+ <div class="tit"><h2>Uso agora</h2><p>{{risco}}% do limite usado</p></div>
+ <div class="faixa">
+  <div><b>{{c.sessao}}<span class="mut" style="font-size:18px"> de {{cfg.perfis_por_sessao}}</span></b><span>nesta sessão</span></div>
+  <div><b>{{c.hora}}<span class="mut" style="font-size:18px"> de {{cfg.perfis_por_hora}}</span></b><span>na última hora</span></div>
+  <div><b>{{c.dia}}<span class="mut" style="font-size:18px"> de {{cfg.perfis_por_dia}}</span></b><span>hoje</span></div>
+  <div><b style="color:{{ 'var(--bad)' if risco >= 80 else ('var(--warn)' if risco >= 50 else 'var(--ok)') }}">{{risco}}%</b><span>do limite</span>
+   <div class="bar" style="margin-top:8px"><i style="width:{{ [risco,100]|min }}%;background:{{ 'var(--bad)' if risco >= 80 else ('var(--warn)' if risco >= 50 else 'var(--ok)') }}"></i></div></div>
+ </div>
+</section>
+
+<div class="grid two secao">
+ <section><div class="tit" style="margin-bottom:12px"><h2>Avisos do Instagram</h2></div>
+ {% if alertas %}<table><tbody>{% for a in alertas %}<tr><td class="small mut" style="white-space:nowrap">{{a.em[8:10]}}/{{a.em[5:7]}} {{a.em[11:16]}}</td><td class="small"><b>{{a.tipo|capitalize}}</b> {{a.texto}}</td></tr>{% endfor %}</tbody></table>
+ {% else %}<div class="vazio">Nenhum aviso até agora.</div>{% endif %}</section>
+ <section><div class="tit" style="margin-bottom:12px"><h2>Últimos perfis abertos</h2></div>
+ {% if visitas %}<table><tbody>{% for v in visitas[:12] %}<tr><td class="small mut" style="white-space:nowrap">{{v.em[8:10]}}/{{v.em[5:7]}} {{v.em[11:16]}}</td><td class="small"><a href="https://instagram.com/{{v.username}}" target="_blank" rel="noopener">@{{v.username}}</a></td></tr>{% endfor %}</tbody></table>
+ {% else %}<div class="vazio">Nenhum perfil aberto ainda.</div>{% endif %}</section>
 </div>
 
-<h2>Ritmo</h2>
-<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-{% for k, nome, desc in [('cautela','Cautela','30 perfis/dia · para conta nova'),('normal','Normal','60 perfis/dia'),('acelerado','Acelerado','120 perfis/dia · mais risco')] %}
- <form method="post" action="/seguranca/perfil/{{k}}" class="card {{'destaque' if modo==k}}" style="margin:0">
-  <b>{{nome}}</b>{% if modo==k %} <span class="st">em uso</span>{% endif %}
-  <div class="small mut" style="margin:4px 0 10px">{{desc}}</div>
-  {% if modo!=k %}<button>Usar este</button>{% endif %}
- </form>
-{% endfor %}
-</div>
-{% if modo == 'personalizado' %}<p class="small mut">Ritmo personalizado (ajustado em Avançado).</p>{% endif %}
-
-<h2>Uso agora</h2>
-<div class="grid k4">
- <div class="card kpi"><div class="v">{{c.sessao}}<span class="mut" style="font-size:16px"> / {{cfg.perfis_por_sessao}}</span></div><div class="l">nesta sessão</div></div>
- <div class="card kpi"><div class="v">{{c.hora}}<span class="mut" style="font-size:16px"> / {{cfg.perfis_por_hora}}</span></div><div class="l">na última hora</div></div>
- <div class="card kpi"><div class="v">{{c.dia}}<span class="mut" style="font-size:16px"> / {{cfg.perfis_por_dia}}</span></div><div class="l">hoje</div></div>
- <div class="card kpi"><div class="v" style="color:{{ 'var(--bad)' if risco >= 80 else ('var(--warn)' if risco >= 50 else 'var(--ok)') }}">{{risco}}%</div><div class="l">dos limites usados</div>
-  <div class="bar" style="margin-top:6px"><i style="width:{{ [risco,100]|min }}%;background:{{ 'var(--bad)' if risco >= 80 else ('var(--warn)' if risco >= 50 else 'var(--ok)') }}"></i></div></div>
-</div>
-
-<div class="grid two" style="margin-top:12px">
- <div><h2 style="margin-top:12px">Alertas</h2>
- {% if alertas %}<table>{% for a in alertas %}<tr><td class="small mut" style="white-space:nowrap">{{a.em[:16].replace('T',' ')}}</td><td class="small"><b>{{a.tipo}}</b> {{a.texto}}</td></tr>{% endfor %}</table>
- {% else %}<div class="vazio">Nenhum alerta do Instagram até agora.</div>{% endif %}</div>
- <div><h2 style="margin-top:12px">Últimos perfis abertos</h2>
- {% if visitas %}<table>{% for v in visitas[:15] %}<tr><td class="small mut" style="white-space:nowrap">{{v.em[:16].replace('T',' ')}}</td><td class="small"><a href="https://instagram.com/{{v.username}}" target="_blank" rel="noopener">@{{v.username}}</a></td></tr>{% endfor %}</table>
- {% else %}<div class="vazio">Nenhum perfil aberto ainda.</div>{% endif %}</div>
-</div>
-
-<details class="avancado"><summary>Avançado: ajustar números do ritmo</summary>
+<details class="avancado"><summary>Avançado: ajustar os números do ritmo</summary>
 <form class="card" method="post" action="/seguranca/config">
  <div class="fields">
-  <div><label>Espera mínima entre perfis (segundos)</label><input name="intervalo_min" value="{{cfg.intervalo_min}}"></div>
-  <div><label>Espera máxima entre perfis (segundos)</label><input name="intervalo_max" value="{{cfg.intervalo_max}}"></div>
+  <div><label>Espera mínima entre perfis, em segundos</label><input name="intervalo_min" value="{{cfg.intervalo_min}}"></div>
+  <div><label>Espera máxima entre perfis, em segundos</label><input name="intervalo_max" value="{{cfg.intervalo_max}}"></div>
   <div><label>Pausa longa a cada quantos perfis</label><input name="pausa_longa_a_cada" value="{{cfg.pausa_longa_a_cada}}"></div>
-  <div><label>Pausa longa: mínimo (segundos)</label><input name="pausa_longa_min" value="{{cfg.pausa_longa_min}}"></div>
-  <div><label>Pausa longa: máximo (segundos, até 480)</label><input name="pausa_longa_max" value="{{cfg.pausa_longa_max}}"></div>
+  <div><label>Pausa longa mínima, em segundos</label><input name="pausa_longa_min" value="{{cfg.pausa_longa_min}}"></div>
+  <div><label>Pausa longa máxima, em segundos (até 480)</label><input name="pausa_longa_max" value="{{cfg.pausa_longa_max}}"></div>
   <div><label>Perfis por sessão</label><input name="perfis_por_sessao" value="{{cfg.perfis_por_sessao}}"></div>
   <div><label>Perfis por hora</label><input name="perfis_por_hora" value="{{cfg.perfis_por_hora}}"></div>
   <div><label>Perfis por dia</label><input name="perfis_por_dia" value="{{cfg.perfis_por_dia}}"></div>
   <div><label>Pode trabalhar a partir de</label><input name="horario_inicio" value="{{cfg.horario_inicio}}"></div>
   <div><label>Pode trabalhar até</label><input name="horario_fim" value="{{cfg.horario_fim}}"></div>
-  <div><label>Pausa automática após alerta (horas)</label><input name="horas_pausa_apos_alerta" value="{{cfg.horas_pausa_apos_alerta}}"></div>
+  <div><label>Pausa automática após aviso, em horas</label><input name="horas_pausa_apos_alerta" value="{{cfg.horas_pausa_apos_alerta}}"></div>
  </div>
- <p><button class="p">Salvar</button></p>
+ <p style="margin-top:14px"><button class="p">Salvar ritmo</button></p>
 </form>
 </details>
 {% endblock %}
-{% block js %}<script>setTimeout(()=>location.reload(),30000)</script>{% endblock %}
+{% block js %}<script>setTimeout(()=>{if(!document.querySelector('details[open]'))location.reload()},30000)</script>{% endblock %}

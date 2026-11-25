@@ -1,16 +1,18 @@
-{% extends "base.html" %}{% from "_macros.html" import score, ig, tags %}
+{% extends "base.html" %}{% from "_macros.html" import score, ig, tags, local %}
 {% block t %}Perfis{% endblock %}{% block c %}
-<h1>Todos os perfis <span class="mut">({{perfis|length}})</span></h1>
-<p class="sub">Tudo que já passou pelo sistema. Use a busca para achar alguém.</p>
+<header class="cab"><div><h1>Todos os perfis <span class="mut">{{perfis|length}}</span></h1><p class="desc">Tudo que já passou pelo sistema, em qualquer etapa.</p></div>
+ <div class="acoes-cab"><a class="btn" href="/exportar.csv{% if status %}?status={{status}}{% endif %}">Baixar planilha</a></div></header>
 <form class="filtros" method="get">
- <div><label class="small mut">Busca</label><input name="q" value="{{q}}" placeholder="@, nome, cidade, público..."></div>
- <div><label class="small mut">Status</label><select name="status"><option value="">todos</option>{% for k,v in STATUS.items() %}<option value="{{k}}" {{'selected' if k==status}}>{{v}}</option>{% endfor %}</select></div>
- <div><label class="small mut">Ordenar</label><select name="ordem">{% for k,v in [('score','nota'),('recentes','recentes'),('seguidores','seguidores'),('views','estimativa de stories')] %}<option value="{{k}}" {{'selected' if k==ordem}}>{{v}}</option>{% endfor %}</select></div>
- <button>Filtrar</button> <a class="btn" href="/exportar.csv{% if status %}?status={{status}}{% endif %}">Baixar planilha</a>
+ <div style="flex:1;min-width:220px"><label for="q">Buscar</label><input id="q" name="q" value="{{q}}" placeholder="@, nome, cidade, público"></div>
+ <div><label for="st">Etapa</label><select id="st" name="status" onchange="this.form.submit()"><option value="">Todas</option>{% for k,v in STATUS.items() %}<option value="{{k}}" {{'selected' if k==status}}>{{v}}</option>{% endfor %}</select></div>
+ <div><label for="o">Ordenar por</label><select id="o" name="ordem" onchange="this.form.submit()">{% for k,v in [('score','Maior nota'),('recentes','Mais recentes'),('seguidores','Mais seguidores')] %}<option value="{{k}}" {{'selected' if k==ordem}}>{{v}}</option>{% endfor %}</select></div>
+ <button>Buscar</button>
 </form>
-<div class="tabela"><table><tr><th>Perfil</th><th>Status</th><th class="num">Seg.</th><th class="num">Views/reel</th><th>Cidade</th><th>Público</th><th>Nota</th></tr>
-{% for p in perfis %}<tr><td>{{ig(p.username)}}{% if p.referencia %} <span class="tag">ref: {{p.referencia}}</span>{% endif %}</td><td><span class="st">{{STATUS[p.status]}}</span></td>
-<td class="num">{{p.seguidores|n}}</td><td class="num">{{p.media_views_reels|n}}</td>
-<td>{{p.cidade or '—'}}{% if p.uf %}/{{p.uf}}{% endif %}</td><td>{{tags(p.publicos)}}</td><td>{{score(p.score)}}</td></tr>
-{% else %}<tr><td colspan="7" class="mut">Nenhum perfil.</td></tr>{% endfor %}</table></div>
+{% if perfis %}
+<div class="tabela"><table>
+<thead><tr><th>Perfil</th><th>Etapa</th><th class="num">Seguidores</th><th>Cidade</th><th>Públicos</th><th>Nota</th></tr></thead>
+<tbody>{% for p in perfis %}<tr><td>{{ig(p.username)}}{% if p.referencia %} <span class="st">referência</span>{% endif %}</td><td><span class="st">{{STATUS[p.status]}}</span></td>
+<td class="num">{{p.seguidores|n}}</td><td>{{local(p)}}</td><td>{{tags(p.publicos)}}</td><td>{{score(p.score)}}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% else %}<div class="vazio">Nenhum perfil encontrado com essa busca.</div>{% endif %}
 {% endblock %}

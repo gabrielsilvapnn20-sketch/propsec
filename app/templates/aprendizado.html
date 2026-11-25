@@ -1,56 +1,59 @@
 {% extends "base.html" %}{% block t %}Resultados{% endblock %}{% block c %}
-<h1>Resultados e aprendizado</h1>
-<p class="sub">De onde vêm os perfis que você aprova, que respondem e que fecham. Use para decidir onde o agente deve procurar mais.</p>
+<header class="cab"><div><h1>Resultados</h1><p class="desc">De onde vêm os perfis que você aprova, que respondem e que fecham. O sistema reaprende sozinho a cada 5 decisões suas.</p></div></header>
 
 {% set melhores = fontes|selectattr('taxa_aprov')|sort(attribute='taxa_aprov', reverse=True)|list %}
 {% if melhores %}
-<div class="card" style="margin-bottom:12px">
- <b>Resumo:</b> a fonte com mais perfis aprovados é <b>{{melhores[0].origem}} {{melhores[0].detalhe}}</b>
- ({{melhores[0].taxa_aprov}}% de {{ (melhores[0].aceitos or 0) + (melhores[0].descartados or 0) }} avaliados).
- {% if sim.amostras < 30 %}<span class="mut">Ainda são poucos resultados ({{sim.amostras}}); trate como tendência, não como regra.</span>{% endif %}
-</div>
+<section class="card">
+ <h2>Resumo</h2>
+ <p style="margin-top:8px">A fonte com mais perfis aprovados é <b>{{ {'sugestoes':'sugestões de','pagina_local':'a loja','local':'a cidade','hashtag':'a hashtag','busca':'a busca'}.get(melhores[0].origem, melhores[0].origem) }} {{melhores[0].detalhe}}</b>: {{melhores[0].taxa_aprov}}% de {{ (melhores[0].aceitos or 0) + (melhores[0].descartados or 0) }} avaliados.</p>
+ {% if sim.amostras < 30 %}<p class="small mut" style="margin-top:6px">Ainda são {{sim.amostras}} resultados. Trate como tendência, não como regra.</p>{% endif %}
+</section>
 {% endif %}
 
-<h2>Por fonte de busca</h2>
-{% if fontes %}
-<div class="tabela"><table>
-<tr><th>Fonte</th><th class="num">Perfis achados</th><th class="num">Você aprovou</th><th class="num">Contatadas</th><th class="num">Responderam</th><th class="num">Fecharam</th></tr>
-{% for f in fontes %}<tr>
- <td>{{ {'sugestoes':'Sugestões de','pagina_local':'Loja','local':'Cidade','hashtag':'#','busca':'Busca','referencia':'Referência','manual':'Manual'}.get(f.origem, f.origem) }} <b>{{f.detalhe}}</b></td>
- <td class="num">{{ (f.perfis or 0) - (f.ignorados or 0) }}</td>
- <td class="num">{% if f.taxa_aprov is not none %}{{f.taxa_aprov}}%{% else %}—{% endif %}</td>
- <td class="num">{{f.contatados}}</td>
- <td class="num">{% if f.taxa_resp is not none %}{{f.taxa_resp}}%{% else %}—{% endif %}</td>
- <td class="num">{{f.fechados}}</td>
-</tr>{% endfor %}
-</table></div>
-{% else %}<div class="vazio">Sem dados ainda. Depois das primeiras sessões do agente, aparece aqui.</div>{% endif %}
+<section class="secao">
+ <div class="tit"><h2>Por fonte de busca</h2><p>Onde o agente achou cada perfil</p></div>
+ {% if fontes %}
+ <div class="tabela"><table>
+ <thead><tr><th>Fonte</th><th class="num">Achados</th><th class="num">Você aprovou</th><th class="num">Contatadas</th><th class="num">Responderam</th><th class="num">Fecharam</th></tr></thead>
+ <tbody>{% for f in fontes %}<tr>
+  <td>{{ {'sugestoes':'Sugestões de','pagina_local':'Loja','local':'Cidade','hashtag':'Hashtag','busca':'Busca','referencia':'Referência','manual':'Manual'}.get(f.origem, f.origem) }} <b>{{f.detalhe}}</b></td>
+  <td class="num">{{ (f.perfis or 0) - (f.ignorados or 0) }}</td>
+  <td class="num">{% if f.taxa_aprov is not none %}{{f.taxa_aprov}}%{% else %}<span class="mut">sem avaliação</span>{% endif %}</td>
+  <td class="num">{{f.contatados}}</td>
+  <td class="num">{% if f.taxa_resp is not none %}{{f.taxa_resp}}%{% else %}<span class="mut">sem contato</span>{% endif %}</td>
+  <td class="num">{{f.fechados}}</td>
+ </tr>{% endfor %}</tbody>
+ </table></div>
+ {% else %}<div class="vazio">Sem dados ainda. Depois das primeiras sessões do agente, aparece aqui.</div>{% endif %}
+</section>
 
-<h2>Por cidade</h2>
-{% if por_cidade %}
-<div class="tabela"><table><tr><th>Cidade</th><th class="num">Contatadas</th><th class="num">Responderam</th><th class="num">Fecharam</th></tr>
-{% for c in por_cidade %}<tr><td>{{ c.chave if c.chave != '?' else 'cidade não informada' }}</td><td class="num">{{c.contatados}}</td><td class="num">{{c.taxa_resposta}}%</td><td class="num">{{c.taxa_fechamento}}%</td></tr>{% endfor %}</table></div>
-{% else %}<div class="vazio">Nenhum contato registrado ainda.</div>{% endif %}
+<section class="secao">
+ <div class="tit"><h2>Por cidade</h2><p>Só perfis contatados</p></div>
+ {% if por_cidade %}
+ <div class="tabela"><table><thead><tr><th>Cidade</th><th class="num">Contatadas</th><th class="num">Responderam</th><th class="num">Fecharam</th></tr></thead>
+ <tbody>{% for c in por_cidade %}<tr><td>{{ c.chave if c.chave != '?' else 'Sem cidade' }}</td><td class="num">{{c.contatados}}</td><td class="num">{{c.taxa_resposta}}%</td><td class="num">{{c.taxa_fechamento}}%</td></tr>{% endfor %}</tbody></table></div>
+ {% else %}<div class="vazio">Nenhum contato registrado ainda.</div>{% endif %}
+</section>
 
 <details class="avancado"><summary>Avançado: como a nota é calculada</summary>
 <div class="grid two">
-<div class="card"><h2 style="margin-top:0">Pesos da nota</h2>
-<p class="small mut">Quanto cada sinal pesa na nota. "Sugerido" é o que o sistema propõe com base nos resultados ({{sim.amostras}} perfis com resultado; só muda um sinal com 6 ou mais).</p>
-<table><tr><th>Sinal</th><th class="num">Atual</th><th class="num">Sugerido</th></tr>
-{% for k, i in sim.componentes.items() %}<tr><td>{{NOMES[k]}}</td><td class="num">{{'%.1f'|format(pesos[k])}}</td><td class="num">{{'%.1f'|format(i.peso_depois)}}</td></tr>{% endfor %}</table>
-<p class="row"><form method="post" action="/recalibrar" class="inline"><button class="p">Usar os pesos sugeridos</button></form>
+<section class="card"><h2>Pesos da nota</h2>
+<p class="small mut" style="margin:6px 0 12px">Quanto cada sinal pesa. "Sugerido" vem dos resultados ({{sim.amostras}} perfis com resultado; um sinal só muda com 6 ou mais).</p>
+<table><thead><tr><th>Sinal</th><th class="num">Atual</th><th class="num">Sugerido</th></tr></thead>
+<tbody>{% for k, i in sim.componentes.items() %}<tr><td>{{NOMES[k]}}</td><td class="num">{{'%.1f'|format(pesos[k])}}</td><td class="num">{{'%.1f'|format(i.peso_depois)}}</td></tr>{% endfor %}</tbody></table>
+<p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><form method="post" action="/recalibrar" class="inline"><button class="p">Usar os pesos sugeridos</button></form>
 <form method="post" action="/pesos/restaurar" class="inline" onsubmit="return confirm('Voltar aos pesos padrão?')"><button>Voltar ao padrão</button></form></p>
-</div>
-<form class="card" method="post" action="/config"><h2 style="margin-top:0">Faixa de seguidores e região</h2>
-<div class="fields">
+</section>
+<form class="card" method="post" action="/config"><h2>Faixa de seguidores e região</h2>
+<div class="fields" style="margin-top:12px">
 <div><label>Mínimo</label><input name="faixa_min" value="{{cfg.faixa_min}}"></div>
-<div><label>Ideal: de</label><input name="faixa_ideal_min" value="{{cfg.faixa_ideal_min}}"></div>
-<div><label>Ideal: até</label><input name="faixa_max" value="{{cfg.faixa_max}}"></div>
+<div><label>Ideal a partir de</label><input name="faixa_ideal_min" value="{{cfg.faixa_ideal_min}}"></div>
+<div><label>Ideal até</label><input name="faixa_max" value="{{cfg.faixa_max}}"></div>
 <div><label>Ainda vale até</label><input name="faixa_especial_max" value="{{cfg.faixa_especial_max}}"></div>
 <div><label>Estados prioritários</label><input name="ufs_prioritarias" value="{{cfg.ufs_prioritarias|join(', ')}}"></div>
 </div>
-<h2>Pesos manuais</h2><div class="fields">{% for k, v in pesos.items() %}<div><label>{{NOMES[k]}}</label><input name="peso_{{k}}" value="{{'%.1f'|format(v)}}"></div>{% endfor %}</div>
-<p><button class="p">Salvar e recalcular notas</button></p></form>
+<h2 style="margin-top:20px">Pesos manuais</h2><div class="fields" style="margin-top:12px">{% for k, v in pesos.items() %}<div><label>{{NOMES[k]}}</label><input name="peso_{{k}}" value="{{'%.1f'|format(v)}}"></div>{% endfor %}</div>
+<p style="margin-top:14px"><button class="p">Salvar e recalcular notas</button></p></form>
 </div>
 </details>
 {% endblock %}

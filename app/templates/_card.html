@@ -1,18 +1,19 @@
-{% from "_macros.html" import score, tags, local %}
-<div class="card pc" data-u="{{p.username}}" tabindex="0">
+{% from "_macros.html" import anel, tags, local %}
+<article class="ficha" data-u="{{p.username}}" tabindex="0">
  <div class="topo">
   <div>
-   <div class="user"><a href="/p/{{p.username}}">@{{p.username}}</a> <a class="small mut" href="https://instagram.com/{{p.username}}" target="_blank" rel="noopener" title="Abrir no Instagram">↗</a></div>
-   <div class="small mut">{{p.nome or ''}}{% if p.nome %} · {% endif %}{{local(p)}}</div>
+   <div class="user"><a href="/p/{{p.username}}">@{{p.username}}</a></div>
+   <div class="onde">{% if p.nome %}{{p.nome}}, {% endif %}{{local(p)}}</div>
   </div>
-  {{score(p.score)}}
+  {{anel(p.score)}}
  </div>
- <div class="seg">{{p.seguidores|n}} <small>seguidores</small>{% if p.media_views_reels %} <small>· ~{{p.media_views_reels|n}} views/reel</small>{% endif %}</div>
- {% if p.observacoes %}<div class="porque">{{p.observacoes}}</div>{% endif %}
- {% if p.bio %}<div class="bio">{{p.bio}}</div>{% endif %}
+ <div class="seg"><b>{{p.seguidores|n}}</b><span>seguidores</span>{% if p.media_views_reels %}<span class="st">~{{p.media_views_reels|n}} views por reel</span>{% endif %}</div>
+ {% if p.observacoes %}<p class="porque">{{p.observacoes}}</p>{% endif %}
+ {% if p.bio %}<p class="bio">{{p.bio}}</p>{% endif %}
  <div>{{tags(p.publicos)}}{% if p.stories_ativos == 1 %}<span class="tag">stories ativos</span>{% endif %}{% if p.faz_publi == 1 %}<span class="tag">já faz publi</span>{% endif %}</div>
+ <div class="small"><a href="https://instagram.com/{{p.username}}" target="_blank" rel="noopener">Abrir no Instagram</a></div>
  <div class="acts">
   <button class="ok" data-acao="aprovado">Aprovar <kbd>A</kbd></button>
-  <button class="x" data-acao="descartado">Descartar <kbd>D</kbd></button>
+  <button data-acao="descartado">Descartar <kbd>D</kbd></button>
  </div>
-</div>
+</article>

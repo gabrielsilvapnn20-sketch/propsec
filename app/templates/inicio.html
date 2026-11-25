@@ -1,39 +1,48 @@
 {% extends "base.html" %}{% from "_macros.html" import score, ig, local %}
 {% block t %}Hoje{% endblock %}{% block c %}
-<h1>Hoje</h1>
-<p class="sub">O que precisa da sua atenção agora.</p>
+<header class="cab"><div><h1>Hoje</h1><p class="desc">O que precisa da sua atenção, em ordem de importância.</p></div></header>
 
-<div class="acoes">
+{% if acoes %}
+<div class="pauta">
 {% for a in acoes %}
- <a class="acao {{'alerta' if a.alerta}}" href="{{a.url}}">
-  <span class="n">{{a.n}}</span>
-  <span class="t"><b>{{a.titulo}}</b><span>{{a.texto}}</span></span>
-  <span class="ir">{{a.ir}} →</span>
+ <a class="tarefa {{'alerta' if a.alerta}}" href="{{a.url}}">
+  <span class="qtd">{{a.n}}</span>
+  <span><b>{{a.titulo}}</b><span class="ex">{{a.texto}}</span></span>
+  <span class="ir">{{a.ir}}</span>
  </a>
-{% else %}
- <div class="vazio">Tudo em dia. Peça ao agente uma nova sessão de prospecção.</div>
 {% endfor %}
 </div>
+{% else %}
+<div class="vazio">Nada pendente. Peça ao agente uma nova sessão de prospecção.</div>
+{% endif %}
 
-<h2>Números da operação</h2>
-<div class="grid k4">
- <div class="card kpi"><div class="v">{{kpis.semana}}</div><div class="l">perfis achados nos últimos 7 dias</div></div>
- <div class="card kpi"><div class="v">{{kpis.contatados}}</div><div class="l">contatadas pelo sistema</div></div>
- <div class="card kpi"><div class="v">{{kpis.taxa_resposta}}%</div><div class="l">responderam</div></div>
- <div class="card kpi"><div class="v">{{kpis.fechados}}</div><div class="l">parcerias fechadas{% if kpis.lucro %} · R$ {{kpis.lucro|n}} registrados{% endif %}</div></div>
-</div>
+<section class="secao">
+ <div class="tit"><h2>Números da operação</h2><p>Só perfis achados pelo sistema</p></div>
+ <div class="faixa">
+  <div><b>{{kpis.semana}}</b><span>achados nos últimos 7 dias</span></div>
+  <div><b>{{kpis.contatados}}</b><span>contatadas</span></div>
+  <div><b>{{kpis.taxa_resposta}}%</b><span>responderam</span></div>
+  <div><b>{{kpis.fechados}}</b><span>{% if kpis.lucro %}fechadas, R$ {{kpis.lucro|n}} de lucro registrado{% else %}parcerias fechadas{% endif %}</span></div>
+ </div>
+</section>
 
-<h2>Onde estão os perfis</h2>
-<div class="funil">
-{% for k, nome, n in funil %}<div><b>{{n}}</b><span>{{nome}}</span></div>{% endfor %}
-</div>
+<section class="secao">
+ <div class="tit"><h2>Onde estão os perfis</h2><p>Clique numa etapa para abrir</p></div>
+ {% set maior = (funil|map(attribute=2)|max) or 1 %}
+ <div class="etapas-funil">
+ {% for k, nome, n in funil %}
+  <a href="{{ '/fila' if k=='novo' else ('/conversas?aba=fechado' if k=='fechado' else '/conversas') }}"><b>{{n}}</b><span>{{nome}}</span><i style="width:{{ (100*n/maior)|round }}%"></i></a>
+ {% endfor %}
+ </div>
+</section>
 
-<h2>Melhores esperando aprovação</h2>
-{% if top %}
-<div class="tabela"><table>
-<tr><th>Perfil</th><th>Cidade</th><th class="num">Seguidores</th><th>Nota</th></tr>
-{% for p in top %}<tr><td>{{ig(p.username)}}</td><td>{{local(p)}}</td><td class="num">{{p.seguidores|n}}</td><td>{{score(p.score)}}</td></tr>{% endfor %}
-</table></div>
-<p><a class="btn p" href="/fila">Ir para a fila de aprovação</a></p>
-{% else %}<div class="vazio">A fila está vazia.</div>{% endif %}
+<section class="secao">
+ <div class="tit"><h2>Melhores esperando aprovação</h2>{% if top %}<a href="/fila">Abrir a fila</a>{% endif %}</div>
+ {% if top %}
+ <div class="tabela"><table>
+  <thead><tr><th>Perfil</th><th>Cidade</th><th class="num">Seguidores</th><th>Nota</th></tr></thead>
+  <tbody>{% for p in top %}<tr><td>{{ig(p.username)}}</td><td>{{local(p)}}</td><td class="num">{{p.seguidores|n}}</td><td>{{score(p.score)}}</td></tr>{% endfor %}</tbody>
+ </table></div>
+ {% else %}<div class="vazio">A fila está vazia.</div>{% endif %}
+</section>
 {% endblock %}
