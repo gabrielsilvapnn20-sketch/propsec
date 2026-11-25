@@ -172,6 +172,7 @@ def taxas_por(con, campo):
                SUM(status IN ('respondeu','negociando','fechado','recusou')) AS responderam,
                SUM(status = 'fechado') AS fechados
         FROM perfis WHERE status IN ('contatado','respondeu','negociando','fechado','recusou','sem_resposta')
+          AND referencia IS NULL AND COALESCE(origem,'') != 'manual'
         GROUP BY 1 ORDER BY contatados DESC
         """
     ).fetchall()

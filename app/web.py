@@ -51,10 +51,18 @@ def _pct(a, b):
 @app.get("/", response_class=HTMLResponse)
 def inicio(request: Request):
     con = db.conectar()
-    cont = {r["status"]: r["n"] for r in con.execute("SELECT status, COUNT(*) n FROM perfis GROUP BY status")}
-    contatados = sum(cont.get(s, 0) for s in db.STATUS_CONTATADOS)
-    responderam = sum(cont.get(s, 0) for s in db.STATUS_RESPONDERAM)
-    fechados = cont.get("fechado", 0)
+    # Referências (parcerias antigas) e "já contatados por fora" não entram nas taxas do funil.
+    cont = {r["status"]: r["n"] for r in con.execute(
+        "SELECT status, COUNT(*) n FROM perfis WHERE referencia IS NULL GROUP BY status")}
+    taxa = {r["status"]: r["n"] for r in con.execute(
+        "SELECT status, COUNT(*) n FROM perfis WHERE referencia IS NULL AND COALESCE(origem,'') != 'manual' "
+        "GROUP BY status")}
+    contatados = sum(taxa.get(s, 0) for s in db.STATUS_CONTATADOS)
+    responderam = sum(taxa.get(s, 0) for s in db.STATUS_RESPONDERAM)
+    fechados = taxa.get("fechado", 0)
+    n_refs = con.execute("SELECT COUNT(*) FROM perfis WHERE referencia IS NOT NULL").fetchone()[0]
+    ja_contatados = con.execute("SELECT COUNT(*) FROM perfis WHERE referencia IS NULL AND origem='manual' "
+                                "AND status='contatado'").fetchone()[0]
     lucro = con.execute("SELECT SUM(lucro_dia) s, COUNT(*) FILTER (WHERE resultado_nivel='alto') a "
                         "FROM perfis WHERE status='fechado'").fetchone()
     views = con.execute("SELECT AVG(story_views_real) a, COUNT(story_views_real) n FROM perfis "
@@ -67,6 +75,7 @@ def inicio(request: Request):
         "taxa_resposta": _pct(responderam, contatados), "taxa_fechamento": _pct(fechados, contatados),
         "views_media": views["a"], "views_n": views["n"], "semana": semana,
         "lucro_total": lucro["s"], "resultado_alto": lucro["a"],
+        "referencias": n_refs, "ja_contatados": ja_contatados,
     }
     funil = [(s, db.STATUS[s], cont.get(s, 0)) for s in db.STATUS]
     top = con.execute("SELECT * FROM perfis WHERE status='novo' ORDER BY score DESC LIMIT 8").fetchall()
