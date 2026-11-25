@@ -254,7 +254,10 @@ def acao_status(request: Request, username: str, status: str = Form(...), nota: 
     p = db.buscar_perfil(con, username)
     if not p:
         raise HTTPException(404)
+    anterior = p["status"]
     db.mudar_status(con, p["id"], status, nota=nota or None)
+    if status in ("aprovado", "descartado", "fechado") and anterior != status:
+        aprendizado.registrar_decisao(con)
     return _voltar(request)
 
 
@@ -282,6 +285,8 @@ def acao_resultado(username: str, lucro_dia: str = Form(""), resultado_nivel: st
         db.registrar_evento(con, p["id"], "views_stories", para=str(int(views)))
     scoring.rescore_perfil(con, p["id"])
     con.commit()
+    if lucro is not None or resultado_nivel:
+        aprendizado.registrar_decisao(con)
     return RedirectResponse(f"/p/{p['username']}", status_code=303)
 
 
@@ -297,6 +302,8 @@ async def api_status(username: str, request: Request):
         raise HTTPException(400, "status inválido")
     anterior = p["status"]
     db.mudar_status(con, p["id"], novo, nota="pelo painel")
+    if novo in ("aprovado", "descartado", "fechado") and anterior != novo:
+        aprendizado.registrar_decisao(con)
     return {"ok": True, "username": p["username"], "status": novo, "anterior": anterior,
             "fila": con.execute("SELECT COUNT(*) FROM perfis WHERE status='novo'").fetchone()[0]}
 

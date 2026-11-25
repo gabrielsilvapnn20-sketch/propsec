@@ -36,7 +36,9 @@ def _rotulo(p):
         return ("referencia", 1.0)
     if p["status"] in ("fechado", "negociando"):
         return ("status", 0.9)
-    if p["status"] == "aprovado":
+    # Tudo que passou pela sua aprovação continua sendo "perfil bom", mesmo que depois
+    # não tenha respondido ou recusado (recusar não torna o perfil ruim).
+    if p["status"] in ("aprovado", "contatado", "respondeu", "recusou", "sem_resposta"):
         return ("status", 0.7)
     if p["status"] == "descartado":
         return ("status", 0.1)
@@ -186,3 +188,17 @@ def taxas_por(con, campo):
         d["taxa_fechamento"] = round(100 * d["fechados"] / d["contatados"]) if d["contatados"] else 0
         out.append(d)
     return out
+
+
+RECALIBRAR_A_CADA = 5  # novas decisões suas (aprovar, descartar, resultado) até reaprender sozinho
+
+
+def registrar_decisao(con):
+    """Conta suas decisões e reaprende os pesos automaticamente a cada RECALIBRAR_A_CADA."""
+    n = (db.get_config(con, "decisoes_desde_recalibracao", 0) or 0) + 1
+    if n >= RECALIBRAR_A_CADA:
+        db.backup()
+        recalibrar(con, aplicar=True)
+        n = 0
+        db.set_config(con, "ultima_recalibracao", db.agora())
+    db.set_config(con, "decisoes_desde_recalibracao", n)

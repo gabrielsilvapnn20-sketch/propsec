@@ -28,8 +28,11 @@ Trabalhe numa aba nova do Chrome; não mexa nas outras abas.
 
 ```bash
 python propsec.py sessao inicio
+python propsec.py exemplos
 python propsec.py proximas-fontes
 ```
+**Leia `exemplos` com atenção antes de começar:** são perfis reais que o usuário fechou,
+destacou, aprovou e descartou. Sua nota de estilo deve imitar o gosto dele, não o seu.
 Se `sessao inicio` disser BLOQUEADO, não comece: diga o motivo.
 
 **Tamanho da conversa:** cada perfil analisado enche a memória da conversa (capturas de tela,
@@ -83,8 +86,13 @@ um por um, a não ser que esteja em dúvida.
 **Nota de estilo (`estilo_blogueira`, 0 a 1)** — compare com as fechadas:
 - **1.0** — igual às fechadas: mulher, selfies/looks/rotina, se apresenta como blogueira/
   criadora ou "parcerias no direct", stories/destaques ativos, cara de conhecida na cidade.
-- **0.7** — perfil pessoal ativo de mulher, fotos produzidas, "paga de blogueira", mas sem
-  falar em parceria.
+- **0.7** — perfil pessoal ativo de mulher, "paga de blogueira", mas sem falar em parceria.
+
+**Atenção a um viés:** foto de celular, casa simples, conteúdo de comunidade/periferia,
+"baixa renda", português informal **não** baixam a nota. Esse público costuma ser muito
+fiel e já deu lucro altíssimo (veja os destacados em `exemplos`). Não premie "produção
+bonita"; premie **ser conhecida e ter gente de verdade interagindo** (comentários de amigas,
+vizinhas, clientes; "seguido por" gente da mesma cidade).
 - **0.4** — perfil pessoal comum, poucos sinais de blogueira.
 - **0–0.2** — não é o estilo: loja, página, homem, empresa, perfil abandonado, famosa grande.
 

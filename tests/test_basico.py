@@ -22,7 +22,10 @@ def test_fluxo():
     db.mudar_status(con, bom, "contatado"); db.mudar_status(con, bom, "recusou")
     assert len(con.execute("SELECT * FROM eventos WHERE perfil_id=?", (bom,)).fetchall()) == 3
     rel = aprendizado.recalibrar(con, aplicar=False)
-    assert rel["amostras"] == 0  # recusou não é rótulo
+    # contatado e recusou continua sendo "perfil bom" (passou pela aprovação); nunca rótulo ruim
+    assert rel["amostras"] == 1
+    from app.aprendizado import _rotulo
+    assert _rotulo(db.buscar_perfil(con, "boa"))[1] >= 0.7
     c = TestClient(app)
     for u in ["/", "/fila", "/perfis", "/pipeline", "/p/boa", "/referencias", "/aprendizado", "/exportar.csv"]:
         assert c.get(u).status_code == 200, u

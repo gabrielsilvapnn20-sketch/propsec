@@ -7,6 +7,10 @@ Buscamos influenciadoras **de menor porte** no Instagram para parcerias:
 - Seguidores: ideal **3.500 a 20.000**; vale a partir de ~1.000 e acima de 20k se o estilo for forte
   (fechadas com 1.451, 47k e 78k deram resultado).
 - Views de reels/engajamento são bônus, não requisito. Poucos posts no feed é normal.
+- Blogueira de comunidade/"baixa renda", foto simples de celular: **não** é ponto negativo —
+  público fiel, já deu lucro alto. Não premiar "produção bonita".
+- Antes de prospectar: `python propsec.py exemplos` (gosto real do usuário: fechadas, aprovadas,
+  descartadas). O sistema reaprende sozinho a cada 5 decisões dele no painel.
 - Prospecção **aberta**: muitas "pagam de blogueira" — público pequeno mas ativo, conhecida na
   cidade/região, interage, às vezes já faz outras parcerias. Forte no **Maranhão** (cidades do
   interior incluídas), mas não só.

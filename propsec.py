@@ -124,6 +124,9 @@ def cmd_semear(a):
         dados = json.load(open(REFERENCIAS_INICIAIS, encoding="utf-8"))
         for d in dados.get("perfis", []):
             d = dict(d); status = d.pop("status", None)
+            atual = db.buscar_perfil(con, d["username"])
+            if atual and atual["status"] not in ("novo", "ignorado", "descartado"):
+                status = None  # já está andando no funil: não mexe na etapa
             db.salvar_perfil(con, d, status=status)
         for f in dados.get("fontes", []):
             con.execute("INSERT OR IGNORE INTO fontes(tipo, valor, nota) VALUES(?,?,?)",
@@ -178,6 +181,45 @@ def cmd_proximas_fontes(a):
     print("\n== 2. Complemento (no máximo 1/3): lojas locais (aba Marcados), cidades, hashtags, buscas ==")
     for nota, f, bons in sorted(outras, key=lambda x: -x[0])[: max(4, a.n // 2)]:
         print(f"{f['tipo']:<11} {f['valor']:<28} exploradas={f['vezes_explorada']} vistos={f['perfis_vistos']} bons={bons}")
+
+
+def cmd_exemplos(a):
+    """Mostra ao agente exemplos REAIS do gosto do usuário, para calibrar a nota de estilo."""
+    con = db.conectar()
+
+    def linha(p):
+        partes = [f"@{p['username']}", f"{p['seguidores'] or '?'} seg"]
+        if p["cidade"]:
+            partes.append(f"{p['cidade']}/{p['uf'] or ''}")
+        if p["resultado_nivel"]:
+            partes.append(f"resultado {p['resultado_nivel']}")
+        if p["lucro_dia"]:
+            partes.append(f"R$ {p['lucro_dia']:.0f}/dia")
+        txt = " | ".join(partes)
+        extra = " · ".join(x for x in (p["bio"], p["publicos"], p["observacoes"]) if x)
+        return f"  {txt}\n      {extra[:220]}" if extra else f"  {txt}"
+
+    blocos = [
+        ("FECHARAM COM RESULTADO ALTO (o alvo)",
+         "SELECT * FROM perfis WHERE resultado_nivel='alto' OR lucro_dia >= 1000 ORDER BY lucro_dia DESC"),
+        ("O USUÁRIO DESTACOU COMO MUITO BONS (referência 'gostamos')",
+         "SELECT * FROM perfis WHERE referencia='gostamos' ORDER BY atualizado_em DESC"),
+        ("FECHARAM COM RESULTADO MÉDIO",
+         "SELECT * FROM perfis WHERE resultado_nivel='medio' ORDER BY atualizado_em DESC LIMIT 8"),
+        ("O USUÁRIO APROVOU RECENTEMENTE (siga esta linha)",
+         "SELECT * FROM perfis WHERE referencia IS NULL AND status IN "
+         "('aprovado','contatado','respondeu','negociando','fechado','recusou','sem_resposta') "
+         "AND COALESCE(origem,'') != 'manual' ORDER BY atualizado_em DESC LIMIT 12"),
+        ("O USUÁRIO DESCARTOU (evite este tipo)",
+         "SELECT * FROM perfis WHERE status='descartado' ORDER BY atualizado_em DESC LIMIT 10"),
+    ]
+    for titulo, sql in blocos:
+        rows = con.execute(sql).fetchall()
+        if rows:
+            print(f"== {titulo} ({len(rows)}) ==")
+            for r in rows:
+                print(linha(r))
+            print()
 
 
 def cmd_contatados(a):
@@ -314,6 +356,7 @@ def main():
     s.add_argument("valor"); s.add_argument("--vistos", type=int, default=0); s.add_argument("--nota")
     s.set_defaults(f=cmd_fonte)
     s = sub.add_parser("semear"); s.set_defaults(f=cmd_semear)
+    s = sub.add_parser("exemplos"); s.set_defaults(f=cmd_exemplos)
     s = sub.add_parser("contatados"); s.add_argument("usernames", nargs="*")
     s.add_argument("--arquivo", help="arquivo .txt com os @ (um por linha ou separados por espaço)")
     s.set_defaults(f=cmd_contatados)
