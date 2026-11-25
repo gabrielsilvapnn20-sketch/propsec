@@ -37,8 +37,12 @@ CAMPOS_PERFIL = [
     "publicos", "hashtags", "tipo_conteudo", "suspeita_compra",
     "observacoes", "origem", "origem_detalhe",
     "story_views_real", "story_views_informado_em", "valor_parceria",
-    "qualidade_manual", "referencia",
+    "qualidade_manual", "referencia", "lucro_dia", "resultado_nivel",
 ]
+
+# Colunas adicionadas depois da primeira versão (migração automática)
+COLUNAS_NOVAS = {"lucro_dia": "REAL", "resultado_nivel": "TEXT"}
+NIVEIS_RESULTADO = {"alto": "Alto (R$ 1.000+/dia)", "medio": "Médio (R$ 200–500/dia)", "baixo": "Baixo"}
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS perfis (
@@ -64,6 +68,8 @@ CREATE TABLE IF NOT EXISTS perfis (
     valor_parceria REAL,
     qualidade_manual INTEGER,        -- 1..5: sua nota do perfil (independe de fechar)
     referencia TEXT,                 -- fechado / gostamos / NULL
+    lucro_dia REAL,                  -- lucro em R$ no dia da parceria
+    resultado_nivel TEXT,            -- alto / medio / baixo
     criado_em TEXT NOT NULL, atualizado_em TEXT NOT NULL, verificado_em TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_perfis_status ON perfis(status);
@@ -113,6 +119,10 @@ def conectar() -> sqlite3.Connection:
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA foreign_keys = ON")
     con.executescript(SCHEMA)
+    existentes = {r["name"] for r in con.execute("PRAGMA table_info(perfis)")}
+    for col, tipo in COLUNAS_NOVAS.items():
+        if col not in existentes:
+            con.execute(f"ALTER TABLE perfis ADD COLUMN {col} {tipo}")
     return con
 
 

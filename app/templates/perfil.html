@@ -22,6 +22,8 @@
 </div>
 <div class="fields" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--bd)">
 <div><label><b>Views reais nos stories</b> (do print dela)</label><input name="story_views_real" value="{{p.story_views_real if p.story_views_real is not none else ''}}"></div>
+<div><label><b>Lucro no dia da parceria (R$)</b></label><input name="lucro_dia" value="{{p.lucro_dia if p.lucro_dia is not none else ''}}"></div>
+<div><label><b>Resultado</b></label><select name="resultado_nivel"><option value="">—</option>{% for k,v in NIVEIS.items() %}<option value="{{k}}" {{'selected' if p.resultado_nivel==k}}>{{v}}</option>{% endfor %}</select></div>
 <div><label><b>Sua nota do perfil (1 a 5)</b> — independe de fechar</label><select name="qualidade_manual"><option value="">—</option>{% for i in range(1,6) %}<option {{'selected' if p.qualidade_manual==i}}>{{i}}</option>{% endfor %}</select></div>
 </div>
 <div style="margin-top:10px"><label class="small mut">Bio</label><textarea name="bio" rows="2">{{p.bio or ''}}</textarea></div>

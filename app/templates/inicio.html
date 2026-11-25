@@ -8,6 +8,8 @@
  <div class="card kpi"><div class="v">{{kpis.contatados}}</div><div class="l">mensagens enviadas</div></div>
  <div class="card kpi"><div class="v">{{kpis.taxa_resposta}}%</div><div class="l">taxa de resposta ({{kpis.responderam}})</div></div>
  <div class="card kpi"><div class="v">{{kpis.taxa_fechamento}}%</div><div class="l">taxa de fechamento ({{kpis.fechados}})</div></div>
+ <div class="card kpi"><div class="v">{{kpis.resultado_alto}}</div><div class="l">parcerias com resultado alto (R$ 1.000+/dia)</div></div>
+ {% if kpis.lucro_total %}<div class="card kpi"><div class="v">R$ {{kpis.lucro_total|n}}</div><div class="l">lucro registrado nas fechadas</div></div>{% endif %}
  <div class="card kpi"><div class="v">{{kpis.views_media|n}}</div><div class="l">views médias reais nos stories ({{kpis.views_n}} informadas)</div></div>
 </div>
 <div class="grid two">

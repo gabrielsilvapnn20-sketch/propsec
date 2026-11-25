@@ -14,6 +14,13 @@ Buscamos influenciadoras **de menor porte** no Instagram para parcerias:
 - Recusar ou não responder **não** torna um perfil ruim. Perfis bons que recusaram são
   referência do tipo `gostamos`.
 
+## Resultado = lucro por dia
+O que define uma parceria boa é o **lucro no dia** que ela gera. Referências (15 fechadas, em
+`referencias/referencias_iniciais.json`): `alto` = mais de R$ 1.000 em um dia (gauannelacerda,
+tamillymacedo_, samara_reggina_, lay_ruivinha288); `medio` = R$ 200–500/dia (as outras 11).
+Registrar sempre o lucro (`--lucro`) ou o nível (`--resultado`) das novas parcerias: é o rótulo
+mais forte do aprendizado. Perfis "não tão bons" no papel já deram resultado alto.
+
 ## Regras do agente
 - No Instagram **só leitura**: nunca enviar mensagem, seguir, curtir, comentar, reagir.
   As mensagens são enviadas pela equipe, fora do agente.

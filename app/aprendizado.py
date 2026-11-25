@@ -1,10 +1,11 @@
 """Aprendizado: ajusta pesos e a estimativa de stories com base nos resultados reais.
 
 Sinais usados como "verdade" (do mais forte para o mais fraco):
-  1. views reais de stories informadas pela influenciadora (÷ seguidores)
-  2. sua nota manual de qualidade do perfil (1 a 5)
-  3. referência: perfil que vocês fecharam ou gostaram = bom
-  4. status: fechado/negociando = bom, descartado por você = ruim
+  1. lucro do dia da parceria (R$) ou nível do resultado (alto/médio/baixo)
+  2. views reais de stories informadas pela influenciadora (÷ seguidores)
+  3. sua nota manual de qualidade do perfil (1 a 5)
+  4. referência: perfil que vocês fecharam ou gostaram = bom
+  5. status: fechado/negociando = bom, descartado por você = ruim
 
 Importante: "não respondeu" e "recusou" NÃO contam como perfil ruim — o perfil
 pode ser ótimo e só não ter aceitado. Isso entra só nas taxas de resposta.
@@ -18,8 +19,15 @@ from . import db, scoring
 MIN_AMOSTRAS = 6
 
 
+NIVEL_VALOR = {"alto": 1.0, "medio": 0.65, "baixo": 0.25}
+
+
 def _rotulo(p):
     seg = p["seguidores"] or 0
+    if p["lucro_dia"]:
+        return ("lucro", p["lucro_dia"])
+    if p["resultado_nivel"] in NIVEL_VALOR:
+        return ("nivel", NIVEL_VALOR[p["resultado_nivel"]])
     if p["story_views_real"] and seg:
         return ("stories", p["story_views_real"] / seg)
     if p["qualidade_manual"]:
@@ -47,18 +55,18 @@ def _pearson(xs, ys):
 
 
 def _normalizar_stories(rotulados):
-    """Converte taxa de stories (views÷seguidores) em 0..1 pela posição (rank)."""
-    st = sorted(v for fonte, v, _ in rotulados if fonte == "stories")
-    if len(st) < 2:
-        return rotulados
-    out = []
-    for fonte, v, p in rotulados:
-        if fonte == "stories":
-            rank = sum(1 for x in st if x <= v) / len(st)
-            out.append((fonte, rank, p))
-        else:
-            out.append((fonte, v, p))
-    return out
+    """Converte lucro (R$) e taxa de stories (views÷seguidores) em 0..1 pela posição (rank)."""
+    for tipo in ("stories", "lucro"):
+        vals = sorted(v for fonte, v, _ in rotulados if fonte == tipo)
+        out = []
+        for fonte, v, p in rotulados:
+            if fonte == tipo:
+                rank = sum(1 for x in vals if x <= v) / len(vals) if len(vals) > 1 else 0.8
+                out.append((fonte, rank, p))
+            else:
+                out.append((fonte, v, p))
+        rotulados = out
+    return rotulados
 
 
 def recalibrar(con, aplicar=True):

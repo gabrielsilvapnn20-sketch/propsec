@@ -28,6 +28,11 @@ Escolha 2 a 4 fontes da lista. Prefira misturar: 1 "similar" de um perfil que de
 
 ## 2. Onde procurar, por tipo de fonte
 
+- **agencia @x** (prioridade máxima): agências/hubs de influenciadoras como `fly.creators.br`
+  e `hub.influ.br` seguem várias das parcerias que deram resultado. Abra a lista
+  **"seguindo"** da agência e avalie cada mulher dali. Quando achar outra agência/hub
+  parecida (aparece no "Seguido(a) por" de várias boas), registre-a:
+  `python propsec.py fonte agencia "<@>" --nota "segue X e Y"`.
 - **similar @x**: abra o perfil de referência. Use os perfis sugeridos ("Sugestões para
   você" / seta ao lado de Seguir), a lista de quem ela segue, e principalmente **quem comenta
   nos posts dela** (amigas, blogueiras da mesma cidade). Também veja as lojas/marcas que ela
@@ -38,6 +43,16 @@ Escolha 2 a 4 fontes da lista. Prefira misturar: 1 "similar" de um perfil que de
   cidade). Perfis de mulheres da cidade que postam muito com localização marcada.
 - **busca**: pesquise o termo na busca do Instagram (contas) e abra os resultados.
 - **explorar / reels**: quando encontrar uma boa, olhe também quem ela marca e quem a marca.
+
+**O que as 15 fechadas têm em comum** (ver `referencias/referencias_iniciais.json`):
+- categoria "Blogueiro(a)" ou "Criador de conteúdo digital", bio "parcerias no direct";
+- muitas são **mães** ("mamãe de…", "mãe da…", "mãe de primeira viagem");
+- **poucos posts no feed é normal** (6, 7, 19, 31 posts e deram resultado). O que importa
+  são stories ativos (anel colorido) e destaques;
+- seguem bastante gente (seguindo alto não é problema);
+- conteúdo de selfie, looks, praia, reels de POV com frase, humor do dia a dia, forró;
+- Nordeste/Norte, cidade pequena (Anajatuba-MA, Ariquemes-RO), Fortaleza, João Pessoa;
+- "Seguido(a) por" mostrando agência (fly.creators.br, hub.influ.br) ou outra parceira.
 
 Sinais bons de cara: bio com "blogueira", "digital influencer", "publi", "parcerias",
 "contato/WhatsApp", cidade/estado (MA, 📍São Luís, 📍Imperatriz…), "mãe de…", "mãe solo",
@@ -51,7 +66,10 @@ reels com legenda pedindo para assistir/compartilhar, recebidos de lojas locais.
    ```
    Pule os `JA_EXISTE`.
 2. **Triagem rápida** (no topo do perfil). Descarte e registre como `ignorado` se:
-   - seguidores fora de 1.000–20.000;
+   - menos de 1.000 seguidores;
+   - mais de 20.000 **e** sem cara das referências (3 fechadas com 47k–139k deram resultado,
+     então acima de 20k salve se for mãe/blogueira com público engajado e stories ativos,
+     e escreva "caso especial" nas observações);
    - perfil privado, loja, página de memes/notícias, homem, empresa, perfil abandonado
      (último post há mais de 2 meses);
    - claramente comprado (ex.: 15 mil seguidores e posts com 20 curtidas e comentários de bots).

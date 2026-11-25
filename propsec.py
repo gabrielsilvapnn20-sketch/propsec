@@ -42,6 +42,9 @@ HASHTAGS = [
     "maesolo", "maesolteira", "maternidadereal", "maedemenina", "maedemenino",
     "mulherdepreso", "esposadedetento", "visitaintima", "fielaoamor",
 ]
+# Agências/hubs que seguem várias das fechadas: quem elas seguem é ouro.
+AGENCIAS = ["fly.creators.br", "hub.influ.br"]
+REFERENCIAS_INICIAIS = "referencias/referencias_iniciais.json"
 BUSCAS = ["aceito parcerias", "blogueira maranhão", "digital influencer MA",
           "mãe solo blogueira", "divulgação loja"]
 
@@ -85,6 +88,11 @@ def cmd_status(a):
         con.execute("UPDATE perfis SET story_views_real=?, story_views_informado_em=? WHERE id=?",
                     (a.views, db.agora(), p["id"]))
         db.registrar_evento(con, p["id"], "views_stories", para=str(a.views), nota=a.nota)
+    if a.lucro is not None:
+        con.execute("UPDATE perfis SET lucro_dia=? WHERE id=?", (a.lucro, p["id"]))
+        db.registrar_evento(con, p["id"], "lucro_dia", para=str(a.lucro), nota=a.nota)
+    if a.resultado:
+        con.execute("UPDATE perfis SET resultado_nivel=? WHERE id=?", (a.resultado, p["id"]))
     if a.qualidade is not None:
         con.execute("UPDATE perfis SET qualidade_manual=? WHERE id=?", (a.qualidade, p["id"]))
     db.mudar_status(con, p["id"], a.novo_status, nota=a.nota)
@@ -102,12 +110,23 @@ def cmd_fonte(a):
 def cmd_semear(a):
     con = db.conectar()
     n = 0
-    for tipo, lista in (("local", CIDADES_MA), ("hashtag", HASHTAGS), ("busca", BUSCAS)):
+    for tipo, lista in (("agencia", AGENCIAS), ("local", CIDADES_MA), ("hashtag", HASHTAGS), ("busca", BUSCAS)):
         for v in lista:
             cur = con.execute("INSERT OR IGNORE INTO fontes(tipo, valor) VALUES(?,?)", (tipo, v))
             n += cur.rowcount
     con.commit()
     print(f"{n} fontes novas cadastradas")
+    import os
+    if os.path.exists(REFERENCIAS_INICIAIS):
+        dados = json.load(open(REFERENCIAS_INICIAIS, encoding="utf-8"))
+        for d in dados.get("perfis", []):
+            d = dict(d); status = d.pop("status", None)
+            db.salvar_perfil(con, d, status=status)
+        for f in dados.get("fontes", []):
+            con.execute("INSERT OR IGNORE INTO fontes(tipo, valor, nota) VALUES(?,?,?)",
+                        (f["tipo"], f["valor"], f.get("nota")))
+        con.commit()
+        print(f"{len(dados.get('perfis', []))} referências iniciais carregadas")
 
 
 def cmd_proximas_fontes(a):
@@ -123,7 +142,8 @@ def cmd_proximas_fontes(a):
         vistos = max(f["perfis_vistos"], 1)
         rendimento = (bons + 3 * fechados) / vistos
         novidade = 1.0 / (1 + f["vezes_explorada"])
-        ranqueadas.append((0.6 * min(rendimento * 5, 1) + 0.4 * novidade, f, bons, fechados))
+        bonus = 0.5 if f["tipo"] == "agencia" else (0.3 if f["tipo"] == "similar" else 0)
+        ranqueadas.append((0.6 * min(rendimento * 5, 1) + 0.4 * novidade + bonus, f, bons, fechados))
     # Similares das melhores (fechadas/referências) sempre entram como sugestão
     refs = con.execute(
         "SELECT username FROM perfis WHERE referencia IS NOT NULL OR status='fechado' "
@@ -211,9 +231,11 @@ def main():
     s.set_defaults(f=cmd_salvar)
     s = sub.add_parser("status"); s.add_argument("username"); s.add_argument("novo_status", choices=list(db.STATUS))
     s.add_argument("--views", type=float, help="views médias reais dos stories")
+    s.add_argument("--lucro", type=float, help="lucro em R$ no dia da parceria")
+    s.add_argument("--resultado", choices=list(db.NIVEIS_RESULTADO), help="nível do resultado")
     s.add_argument("--qualidade", type=int, choices=range(1, 6)); s.add_argument("--nota")
     s.set_defaults(f=cmd_status)
-    s = sub.add_parser("fonte"); s.add_argument("tipo", choices=["hashtag", "local", "similar", "busca", "comentarios", "explorar"])
+    s = sub.add_parser("fonte"); s.add_argument("tipo", choices=["agencia", "hashtag", "local", "similar", "busca", "comentarios", "explorar"])
     s.add_argument("valor"); s.add_argument("--vistos", type=int, default=0); s.add_argument("--nota")
     s.set_defaults(f=cmd_fonte)
     s = sub.add_parser("semear"); s.set_defaults(f=cmd_semear)

@@ -17,7 +17,7 @@ PESOS_PADRAO = {
     "engajamento": 2.0,       # (curtidas + comentários) ÷ seguidores
     "comentarios": 1.5,       # volume e autenticidade dos comentários
     "stories_ativos": 1.5,    # posta stories com frequência
-    "constancia": 1.0,        # posts por semana
+    "constancia": 0.3,        # posts por semana (fechadas com 6–30 posts deram resultado: pesa pouco)
     "perfil_blogueira": 1.0,  # já faz publi, marca lojas, tem contato na bio
     "regiao": 0.5,            # está numa região prioritária
 }
@@ -40,6 +40,7 @@ CONFIG_PADRAO = {
     "ufs_prioritarias": ["MA"],
     "valor_desconhecido": 0.4,   # quanto vale um sinal que o agente não conseguiu medir
     "taxa_stories_base": 0.10,   # calibrada pelo aprendizado
+    "penalidade_fora_faixa": 0.6,  # multiplicador da nota fora de 1.000–20.000 (há fechadas com 47k–139k)
 }
 
 
@@ -135,7 +136,7 @@ def calcular(p, pesos, cfg):
         mult *= 0.4
         motivos.append("⚠ suspeita de seguidores comprados")
     if seg is not None and comp["faixa"] == 0.0:
-        mult *= 0.3
+        mult *= cfg["penalidade_fora_faixa"]
         motivos.append(f"⚠ fora da faixa ({int(seg):,} seguidores)".replace(",", "."))
 
     score = round(100 * base * mult, 1)

@@ -32,6 +32,7 @@ tpl.env.filters["n"] = _fmt_int
 tpl.env.filters["motivos"] = lambda s: json.loads(s) if s else []
 tpl.env.globals["STATUS"] = db.STATUS
 tpl.env.globals["NOMES"] = scoring.NOMES
+tpl.env.globals["NIVEIS"] = db.NIVEIS_RESULTADO
 
 
 def render(request, nome, **ctx):
@@ -54,6 +55,8 @@ def inicio(request: Request):
     contatados = sum(cont.get(s, 0) for s in db.STATUS_CONTATADOS)
     responderam = sum(cont.get(s, 0) for s in db.STATUS_RESPONDERAM)
     fechados = cont.get("fechado", 0)
+    lucro = con.execute("SELECT SUM(lucro_dia) s, COUNT(*) FILTER (WHERE resultado_nivel='alto') a "
+                        "FROM perfis WHERE status='fechado'").fetchone()
     views = con.execute("SELECT AVG(story_views_real) a, COUNT(story_views_real) n FROM perfis "
                         "WHERE story_views_real IS NOT NULL").fetchone()
     semana = con.execute("SELECT COUNT(*) FROM perfis WHERE criado_em >= date('now','-7 day') "
@@ -63,6 +66,7 @@ def inicio(request: Request):
         "contatados": contatados, "responderam": responderam, "fechados": fechados,
         "taxa_resposta": _pct(responderam, contatados), "taxa_fechamento": _pct(fechados, contatados),
         "views_media": views["a"], "views_n": views["n"], "semana": semana,
+        "lucro_total": lucro["s"], "resultado_alto": lucro["a"],
     }
     funil = [(s, db.STATUS[s], cont.get(s, 0)) for s in db.STATUS]
     top = con.execute("SELECT * FROM perfis WHERE status='novo' ORDER BY score DESC LIMIT 8").fetchall()
@@ -128,7 +132,8 @@ def perfil(request: Request, username: str):
 @app.get("/referencias", response_class=HTMLResponse)
 def referencias(request: Request):
     con = db.conectar()
-    refs = con.execute("SELECT * FROM perfis WHERE referencia IS NOT NULL ORDER BY referencia, username").fetchall()
+    refs = con.execute("SELECT * FROM perfis WHERE referencia IS NOT NULL ORDER BY referencia, "
+                        "CASE resultado_nivel WHEN 'alto' THEN 0 WHEN 'medio' THEN 1 ELSE 2 END, lucro_dia DESC, username").fetchall()
     return render(request, "referencias.html", refs=refs)
 
 
