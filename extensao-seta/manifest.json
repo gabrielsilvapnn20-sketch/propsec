@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "PropSec — Seta do agente",
+  "version": "1.0",
+  "description": "Mostra uma seta deslizando até onde o agente clica e rola no Instagram. Só visual: não envia nada, não lê nada.",
+  "content_scripts": [
+    {
+      "matches": ["https://www.instagram.com/*"],
+      "js": ["seta.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

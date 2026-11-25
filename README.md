@@ -63,3 +63,13 @@ python propsec.py exportar perfis.csv
 
 API local: `POST /api/perfis` (JSON igual ao do `salvar`), `GET /api/perfis/{username}`,
 `GET /exportar.csv`.
+
+## Seta do agente (opcional)
+
+A extensão do Claude clica e rola sem mostrar ponteiro. A pasta `extensao-seta/` é uma
+extensão do Chrome que só desenha uma seta deslizando até onde o agente clica (com uma
+"onda" no clique) e um ↕ quando ele rola. Ela não lê nem envia nada.
+
+Instalar: Chrome → `chrome://extensions` → ligue **Modo do desenvolvedor** (canto superior
+direito) → **Carregar sem compactação** → escolha a pasta `C:\propsec\extensao-seta`.
+Para desligar, é só desativar ali.
