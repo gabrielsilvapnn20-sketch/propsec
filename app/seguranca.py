@@ -127,18 +127,36 @@ def verificar(con):
     return True, "ok", min(espera, ESPERA_MAXIMA)
 
 
+def atividade(con, estado, perfil=None, ate=None):
+    db.set_config(con, "agente_atividade", {"estado": estado, "perfil": perfil, "desde": db.agora(), "ate": ate})
+
+
+def ler_atividade(con):
+    a = db.get_config(con, "agente_atividade") or {"estado": "parado"}
+    # sem sinal há mais de 15 min = parado
+    if a.get("desde") and a["estado"] != "parado":
+        if (datetime.now() - datetime.fromisoformat(a["desde"])).total_seconds() > 900 and not a.get("ate"):
+            a = {"estado": "parado"}
+    return a
+
+
 def liberar(con, username, dormir=True):
+    u = db.normalizar_username(username)
     pode, motivo, espera = verificar(con)
     if not pode:
+        atividade(con, "bloqueado", u)
         return False, motivo
     if espera and dormir:
+        ate = (datetime.now() + timedelta(seconds=espera)).isoformat(timespec="seconds")
+        atividade(con, "aguardando", u, ate)
         time.sleep(espera)
         pode, motivo, _ = verificar(con)  # o usuário pode ter apertado PARAR durante a espera
         if not pode:
             return False, motivo
     con.execute("INSERT INTO visitas(username, sessao_id, em) VALUES(?,?,?)",
-                (db.normalizar_username(username), _sessao_atual(con), db.agora()))
+                (u, _sessao_atual(con), db.agora()))
     con.commit()
+    atividade(con, "analisando", u)
     c = contagens(con)
     cfg = config(con)
     return True, (f"LIBERADO @{db.normalizar_username(username)} (esperou {round(espera)}s) — "

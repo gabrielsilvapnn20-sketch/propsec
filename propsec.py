@@ -42,7 +42,7 @@ HASHTAGS = [
     "maesolo", "maesolteira", "maternidadereal", "maedemenina", "maedemenino",
     "mulherdepreso", "esposadedetento", "visitaintima", "fielaoamor",
 ]
-# Agências/hubs que seguem várias das fechadas: quem elas seguem é ouro.
+# Agências/hubs: quem elas seguem provavelmente já é agenciada. NÃO usar como fonte.
 AGENCIAS = ["fly.creators.br", "hub.influ.br"]
 REFERENCIAS_INICIAIS = "referencias/referencias_iniciais.json"
 BUSCAS = ["aceito parcerias", "blogueira maranhão", "digital influencer MA",
@@ -113,7 +113,7 @@ def cmd_fonte(a):
 def cmd_semear(a):
     con = db.conectar()
     n = 0
-    for tipo, lista in (("agencia", AGENCIAS), ("local", CIDADES_MA), ("hashtag", HASHTAGS), ("busca", BUSCAS)):
+    for tipo, lista in (("local", CIDADES_MA), ("hashtag", HASHTAGS), ("busca", BUSCAS)):
         for v in lista:
             cur = con.execute("INSERT OR IGNORE INTO fontes(tipo, valor) VALUES(?,?)", (tipo, v))
             n += cur.rowcount
@@ -130,54 +130,54 @@ def cmd_semear(a):
                         (f["tipo"], f["valor"], f.get("nota")))
         con.commit()
         print(f"{len(dados.get('perfis', []))} referências iniciais carregadas")
+    # versões antigas usavam agências e páginas de loja como fonte; desativa
+    con.execute("UPDATE fontes SET ativa=0 WHERE tipo IN ('agencia', 'pagina_local')")
+    con.commit()
 
 
-REDE_CONHECIDA = ("agencia", "similar")  # fontes ligadas às referências/rede que vocês já trabalham
+def _sementes(con, limite=12):
+    """Perfis bons de onde seguir as SUGESTÕES do Instagram (perfis semelhantes)."""
+    usadas = {r["valor"]: r for r in con.execute("SELECT * FROM fontes WHERE tipo='sugestoes'")}
+    rows = con.execute(
+        """SELECT username, status, referencia, resultado_nivel, score, cidade, uf FROM perfis
+           WHERE status IN ('fechado','negociando','respondeu','aprovado')
+              OR referencia IS NOT NULL OR (status='novo' AND score >= 65)""").fetchall()
+
+    def prioridade(r):
+        base = {"fechado": 5, "negociando": 4, "respondeu": 3.5, "aprovado": 3}.get(r["status"], 1)
+        if r["resultado_nivel"] == "alto":
+            base += 3
+        if r["referencia"] is None and r["status"] in ("aprovado", "respondeu", "negociando", "fechado"):
+            base += 2  # achado novo aprovado pelo usuário: leva para fora da rede já trabalhada
+        base += (r["score"] or 0) / 100
+        uso = usadas.get(r["username"])
+        if uso:  # já foi semente: perde prioridade a cada uso, para girar entre as sementes
+            base = base / (1 + 0.7 * uso["vezes_explorada"])
+        return base
+
+    return [(r, usadas.get(r["username"])) for r in sorted(rows, key=prioridade, reverse=True)[:limite]]
 
 
 def cmd_proximas_fontes(a):
-    """Plano de fontes da sessão: no máximo 1/3 da rede conhecida, o resto horizonte novo."""
+    """Plano da sessão: principalmente SUGESTÕES a partir de perfis bons; o resto, cidades/hashtags."""
     con = db.conectar()
+    print("PLANO DA SESSÃO: pelo menos 2/3 dos perfis vêm de SUGESTÕES a partir das sementes abaixo")
+    print("(botão de perfis semelhantes ao lado de 'Enviar mensagem'). O resto, de cidades/hashtags.\n")
+    print("== 1. Sementes (perfis bons) para seguir as sugestões ==")
+    for r, uso in _sementes(con, a.n):
+        tag = r["resultado_nivel"] or r["referencia"] or r["status"]
+        visto = f"já usada {uso['vezes_explorada']}x" if uso else "nunca usada"
+        print(f"sugestoes   @{r['username']:<26} [{tag}] score={r['score']} {r['cidade'] or ''} ({visto})")
     rend = {(r["origem"], r["detalhe"]): r for r in aprendizado.desempenho_fontes(con)}
-    fontes = con.execute("SELECT * FROM fontes WHERE ativa=1").fetchall()
-    conhecida, nova = [], []
-    for f in fontes:
+    outras = []
+    for f in con.execute("SELECT * FROM fontes WHERE ativa=1 AND tipo IN ('local','hashtag','busca','explorar')"):
         r = rend.get((f["tipo"], f["valor"]))
         bons = (r["bons"] or 0) if r else 0
-        fechados = (r["fechados"] or 0) if r else 0
-        vistos = max(f["perfis_vistos"], 1)
-        rendimento = min((bons + 3 * fechados) / vistos * 5, 1)
-        novidade = 1.0 / (1 + f["vezes_explorada"])
-        item = (0.6 * rendimento + 0.4 * novidade, f, bons, fechados)
-        (conhecida if f["tipo"] in REDE_CONHECIDA else nova).append(item)
-
-    # "Bola de neve" a partir de achados NOVOS (fora da rede das referências)
-    ja = {f["valor"] for f in fontes if f["tipo"] in ("similar", "achado")}
-    achados = con.execute(
-        "SELECT username, score, cidade, uf FROM perfis WHERE referencia IS NULL "
-        "AND COALESCE(origem,'') NOT IN ('referencia','manual','agencia','similar') "
-        "AND status IN ('novo','aprovado','contatado','respondeu','negociando','fechado') AND score >= 60 "
-        "ORDER BY score DESC LIMIT 30").fetchall()
-    achados = [r for r in achados if r["username"] not in ja][:8]
-
-    def linha(item):
-        nota, f, bons, fechados = item
-        return (f"{f['tipo']:<12} {f['valor']:<28} exploradas={f['vezes_explorada']} "
-                f"vistos={f['perfis_vistos']} bons={bons} fechados={fechados}"
-                + (f"  ({f['nota']})" if f["nota"] else ""))
-
-    print("PLANO DA SESSÃO: no máximo 1/3 dos perfis da REDE CONHECIDA; o resto de HORIZONTE NOVO.\n")
-    print("== 1. Horizonte novo: bola de neve a partir de achados fora da rede (sugeridos/comentaristas) ==")
-    for r in achados:
-        print(f"achado       @{r['username']:<27} score={r['score']} {r['cidade'] or ''}")
-    if not achados:
-        print("(nenhum ainda: comece por locais, páginas locais e hashtags)")
-    print("\n== 2. Horizonte novo: locais, páginas locais, hashtags, buscas ==")
-    for item in sorted(nova, key=lambda x: -x[0])[: a.n]:
-        print(linha(item))
-    print("\n== 3. Rede conhecida (agências e próximos das referências) — use pouco ==")
-    for item in sorted(conhecida, key=lambda x: -x[0])[: max(3, a.n // 3)]:
-        print(linha(item))
+        nota = 0.6 * min(bons / max(f["perfis_vistos"], 1) * 5, 1) + 0.4 / (1 + f["vezes_explorada"])
+        outras.append((nota, f, bons))
+    print("\n== 2. Complemento (no máximo 1/3): cidades, hashtags, buscas ==")
+    for nota, f, bons in sorted(outras, key=lambda x: -x[0])[: max(4, a.n // 2)]:
+        print(f"{f['tipo']:<11} {f['valor']:<28} exploradas={f['vezes_explorada']} vistos={f['perfis_vistos']} bons={bons}")
 
 
 def cmd_contatados(a):
@@ -245,8 +245,10 @@ def cmd_retomar(a):
 def cmd_sessao(a):
     con = seguranca.conectar()
     if a.acao == "inicio":
+        con.execute("UPDATE sessoes SET fim=? WHERE fim IS NULL", (db.agora(),))  # fecha sessões esquecidas
         cur = con.execute("INSERT INTO sessoes(inicio) VALUES(?)", (db.agora(),))
         con.commit()
+        seguranca.atividade(con, "buscando")
         print(f"sessao={cur.lastrowid}")
         cmd_hoje(a)
     else:
@@ -254,6 +256,7 @@ def cmd_sessao(a):
         con.execute("UPDATE sessoes SET fim=?, perfis_visitados=?, perfis_salvos=?, nota=? WHERE id=?",
                     (db.agora(), a.visitados, a.salvos, a.nota, sid))
         con.commit()
+        seguranca.atividade(con, "parado")
         print(f"sessao {sid} encerrada")
 
 
@@ -307,7 +310,7 @@ def main():
     s.add_argument("--resultado", choices=list(db.NIVEIS_RESULTADO), help="nível do resultado")
     s.add_argument("--qualidade", type=int, choices=range(1, 6)); s.add_argument("--nota")
     s.set_defaults(f=cmd_status)
-    s = sub.add_parser("fonte"); s.add_argument("tipo", choices=["agencia", "similar", "achado", "pagina_local", "hashtag", "local", "busca", "comentarios", "explorar"])
+    s = sub.add_parser("fonte"); s.add_argument("tipo", choices=["sugestoes", "hashtag", "local", "busca", "explorar", "similar", "achado", "comentarios"])
     s.add_argument("valor"); s.add_argument("--vistos", type=int, default=0); s.add_argument("--nota")
     s.set_defaults(f=cmd_fonte)
     s = sub.add_parser("semear"); s.set_defaults(f=cmd_semear)

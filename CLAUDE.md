@@ -21,11 +21,15 @@ tamillymacedo_, samara_reggina_, lay_ruivinha288); `medio` = R$ 200–500/dia (a
 Registrar sempre o lucro (`--lucro`) ou o nível (`--resultado`) das novas parcerias: é o rótulo
 mais forte do aprendizado. Perfis "não tão bons" no papel já deram resultado alto.
 
-## Já contatados e horizonte
-O usuário chama perfis por fora; quando ele mandar uma lista, registre com
-`python propsec.py contatados @a @b ...` (ou `--arquivo lista.txt`). A rede das referências
-(agências, "seguido por") já foi muito trabalhada: no máximo 1/3 de cada sessão vem dela;
-o resto é horizonte novo (achados fora da rede, páginas locais, cidades novas).
+## Como achar perfis
+- Caminho principal: **sugestões do Instagram (perfis semelhantes) a partir de perfis bons**
+  — fechadas, aprovadas pelo usuário, referências — e depois bola de neve a partir dos achados
+  novos bons. `python propsec.py proximas-fontes` lista as sementes.
+- **Não** usar a lista "seguindo" de agências (fly.creators.br, hub.influ.br): já são agenciadas.
+- Não usar páginas de lojas como caminho. Cidades/hashtags só como complemento (≤ 1/3).
+- O usuário chama perfis por fora; quando ele mandar uma lista, registre com
+  `python propsec.py contatados @a @b ...` (ou `--arquivo lista.txt`).
+- Perfis que o usuário **aprova** na fila viram sementes e ensinam o sistema.
 
 ## Regras do agente
 - No Instagram **só leitura**: nunca enviar mensagem, seguir, curtir, comentar, reagir.

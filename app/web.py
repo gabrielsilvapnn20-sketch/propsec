@@ -35,7 +35,15 @@ tpl.env.globals["NOMES"] = scoring.NOMES
 tpl.env.globals["NIVEIS"] = db.NIVEIS_RESULTADO
 
 
+VERSAO = "2026.11.25-c"
+
+
 def render(request, nome, **ctx):
+    try:
+        ctx.setdefault("agente", seguranca.ler_atividade(seguranca.conectar()))
+    except Exception:
+        ctx.setdefault("agente", {"estado": "parado"})
+    ctx["versao"] = VERSAO
     return tpl.TemplateResponse(request, nome, ctx)
 
 
@@ -323,6 +331,16 @@ async def api_salvar(request: Request):
         r = con.execute("SELECT username, score, status FROM perfis WHERE id=?", (pid,)).fetchone()
         out.append({**dict(r), "criado": criado})
     return JSONResponse(out)
+
+
+@app.get("/api/versao")
+def api_versao():
+    return {"versao": VERSAO}
+
+
+@app.get("/api/agente")
+def api_agente():
+    return seguranca.ler_atividade(seguranca.conectar())
 
 
 @app.get("/api/perfis/{username}")

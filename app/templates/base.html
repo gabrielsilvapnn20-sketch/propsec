@@ -9,4 +9,22 @@
 <a href="/referencias" class="{{'on' if path.startswith('/referencias')}}">Referências</a>
 <a href="/seguranca" class="{{'on' if path.startswith('/seguranca')}}">Segurança</a>
 <a href="/aprendizado" class="{{'on' if path.startswith('/aprendizado')}}">Aprendizado</a>
-</nav><main>{% block c %}{% endblock %}</main></body></html>
+<span id="agente" class="st" style="margin-left:auto" title="o que o agente está fazendo agora"></span>
+<span class="small mut">v{{versao}}</span>
+</nav><main>{% block c %}{% endblock %}</main>
+<script>
+(function(){
+  const el=document.getElementById('agente');
+  const txt={parado:'⏸ agente parado',buscando:'🔎 agente buscando perfis',analisando:'👀 analisando',aguardando:'⏳ aguardando intervalo seguro',bloqueado:'■ agente bloqueado'};
+  let a={{ agente|tojson }};
+  function pinta(){
+    let t=txt[a.estado]||a.estado;
+    if(a.perfil&&a.estado!=='parado') t+=' @'+a.perfil;
+    if(a.estado==='aguardando'&&a.ate){const s=Math.max(0,Math.round((new Date(a.ate)-new Date())/1000));t+=' — '+s+' s';}
+    el.textContent=t;
+    el.style.color=a.estado==='bloqueado'?'var(--bad)':(a.estado==='parado'?'var(--mut)':'var(--ok)');
+  }
+  pinta(); setInterval(pinta,1000);
+  setInterval(()=>fetch('/api/agente').then(r=>r.json()).then(j=>{a=j;pinta();}).catch(()=>{}),5000);
+})();
+</script></body></html>
