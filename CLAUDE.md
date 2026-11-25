@@ -26,7 +26,8 @@ mais forte do aprendizado. Perfis "não tão bons" no papel já deram resultado 
   — fechadas, aprovadas pelo usuário, referências — e depois bola de neve a partir dos achados
   novos bons. `python propsec.py proximas-fontes` lista as sementes.
 - **Não** usar a lista "seguindo" de agências (fly.creators.br, hub.influ.br): já são agenciadas.
-- Não usar páginas de lojas como caminho. Cidades/hashtags só como complemento (≤ 1/3).
+- Complemento (≤ 1/3): aba **Marcados** de lojas locais de moda/beleza (boa fonte de "blogueira
+  da cidade"), cidades e hashtags. Lojas sem público feminino (móveis, mercado) não servem.
 - O usuário chama perfis por fora; quando ele mandar uma lista, registre com
   `python propsec.py contatados @a @b ...` (ou `--arquivo lista.txt`).
 - Perfis que o usuário **aprova** na fila viram sementes e ensinam o sistema.

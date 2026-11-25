@@ -32,6 +32,13 @@ python propsec.py proximas-fontes
 ```
 Se `sessao inicio` disser BLOQUEADO, não comece: diga o motivo.
 
+**Tamanho da conversa:** cada perfil analisado enche a memória da conversa (capturas de tela,
+textos), e a conversa fica cada vez mais lenta. Faça no máximo ~20 perfis por conversa. Ao
+terminar, diga ao usuário para abrir uma **conversa nova** para a próxima sessão.
+
+**Comandos:** use sempre `python propsec.py ...` sozinho, sem `echo ... |`, `&&` ou `cd`
+na frente, para que um único padrão de permissão cubra todos.
+
 ## 2. Caminho principal: sugestões a partir de perfis bons
 
 O usuário quer **perfis parecidos com os que já deram certo**, achados pelas sugestões do
@@ -53,9 +60,14 @@ próprio Instagram. `proximas-fontes` lista as **sementes** (fechadas, aprovadas
 seguem já é agenciado. Se um perfil mostrar "Seguido(a) por" uma agência, anote isso nas
 observações ("possivelmente agenciada"), mas pode salvar.
 
-**Complemento (no máximo 1/3 da sessão):** cidades e hashtags do bloco 2 de
-`proximas-fontes` — principalmente quando as sugestões começarem a repetir perfis já vistos.
-Não use páginas de lojas como caminho.
+**Complemento (no máximo 1/3 da sessão):**
+- **Lojas locais de moda/beleza** (boutiques, calçados, salões, cosméticos de cidades
+  pequenas): abra a aba **Marcados** da loja. Quem aparece ali fazendo provador/recebidos
+  costuma ser exatamente a "blogueira da cidade" que fecha permuta. Ache a loja pela busca
+  ("boutique Codó", "loja feminina Bacabal") e registre: `fonte pagina_local "<@loja>" --nota "cidade"`.
+  Lojas sem público feminino (móveis, mercado, farmácia grande) não servem.
+- Cidades e hashtags do bloco 2 de `proximas-fontes`, principalmente quando as sugestões
+  começarem a repetir perfis já vistos.
 
 ## 3. Analisar um perfil (rápido e objetivo)
 
@@ -71,7 +83,9 @@ Descarte e salve como `ignorado` se:
   com público engajado e stories ativos; escreva "caso especial");
 - seguidores claramente comprados (muitos seguidores, views/curtidas ínfimas, comentários de bot).
 ```bash
-echo '{"username":"x","seguidores":42000,"observacoes":"fora da faixa","origem":"sugestoes","origem_detalhe":"semente"}' | python propsec.py salvar - --status ignorado
+python propsec.py salvar - --status ignorado <<'JSON'
+{"username":"x","seguidores":42000,"observacoes":"fora da faixa","origem":"sugestoes","origem_detalhe":"semente"}
+JSON
 ```
 
 **Etapa B — análise (só para quem passou):** role a página com calma, abra 2–3 posts ou

@@ -131,7 +131,7 @@ def cmd_semear(a):
         con.commit()
         print(f"{len(dados.get('perfis', []))} referências iniciais carregadas")
     # versões antigas usavam agências e páginas de loja como fonte; desativa
-    con.execute("UPDATE fontes SET ativa=0 WHERE tipo IN ('agencia', 'pagina_local')")
+    con.execute("UPDATE fontes SET ativa=0 WHERE tipo = 'agencia'")
     con.commit()
 
 
@@ -170,12 +170,12 @@ def cmd_proximas_fontes(a):
         print(f"sugestoes   @{r['username']:<26} [{tag}] score={r['score']} {r['cidade'] or ''} ({visto})")
     rend = {(r["origem"], r["detalhe"]): r for r in aprendizado.desempenho_fontes(con)}
     outras = []
-    for f in con.execute("SELECT * FROM fontes WHERE ativa=1 AND tipo IN ('local','hashtag','busca','explorar')"):
+    for f in con.execute("SELECT * FROM fontes WHERE ativa=1 AND tipo IN ('pagina_local','local','hashtag','busca','explorar')"):
         r = rend.get((f["tipo"], f["valor"]))
         bons = (r["bons"] or 0) if r else 0
         nota = 0.6 * min(bons / max(f["perfis_vistos"], 1) * 5, 1) + 0.4 / (1 + f["vezes_explorada"])
         outras.append((nota, f, bons))
-    print("\n== 2. Complemento (no máximo 1/3): cidades, hashtags, buscas ==")
+    print("\n== 2. Complemento (no máximo 1/3): lojas locais (aba Marcados), cidades, hashtags, buscas ==")
     for nota, f, bons in sorted(outras, key=lambda x: -x[0])[: max(4, a.n // 2)]:
         print(f"{f['tipo']:<11} {f['valor']:<28} exploradas={f['vezes_explorada']} vistos={f['perfis_vistos']} bons={bons}")
 
@@ -310,7 +310,7 @@ def main():
     s.add_argument("--resultado", choices=list(db.NIVEIS_RESULTADO), help="nível do resultado")
     s.add_argument("--qualidade", type=int, choices=range(1, 6)); s.add_argument("--nota")
     s.set_defaults(f=cmd_status)
-    s = sub.add_parser("fonte"); s.add_argument("tipo", choices=["sugestoes", "hashtag", "local", "busca", "explorar", "similar", "achado", "comentarios"])
+    s = sub.add_parser("fonte"); s.add_argument("tipo", choices=["sugestoes", "pagina_local", "hashtag", "local", "busca", "explorar", "similar", "achado", "comentarios"])
     s.add_argument("valor"); s.add_argument("--vistos", type=int, default=0); s.add_argument("--nota")
     s.set_defaults(f=cmd_fonte)
     s = sub.add_parser("semear"); s.set_defaults(f=cmd_semear)
