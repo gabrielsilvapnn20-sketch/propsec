@@ -1,34 +1,73 @@
-{% extends "base.html" %}{% from "_macros.html" import score, tags %}
+{% extends "base.html" %}{% from "_macros.html" import score, tags, local %}
 {% block t %}@{{p.username}}{% endblock %}{% block c %}
-<div class="row" style="justify-content:space-between;align-items:center"><h1>@{{p.username}} {{score(p.score)}} <a class="small" href="https://instagram.com/{{p.username}}" target="_blank">abrir no Instagram ↗</a></h1>
-<form method="post" action="/p/{{p.username}}/status" class="row"><select name="status" style="width:auto">{% for k,v in STATUS.items() %}<option value="{{k}}" {{'selected' if k==p.status}}>{{v}}</option>{% endfor %}</select><input name="nota" placeholder="nota (opcional)" style="width:200px"><button class="p">Mudar status</button></form></div>
+<div class="cab">
+ <div>
+  <h1>@{{p.username}} {{score(p.score)}} <span class="st">{{STATUS[p.status]}}</span></h1>
+  <div class="mut">{{p.nome or ''}}{% if p.nome %} · {% endif %}{{local(p)}} · <b>{{p.seguidores|n}}</b> seguidores
+   · <a href="https://instagram.com/{{p.username}}" target="_blank" rel="noopener">abrir no Instagram ↗</a></div>
+ </div>
+ <div class="etapas">
+  {% for st, rotulo in PROXIMOS[p.status] %}
+  <form method="post" action="/p/{{p.username}}/status" class="inline"><input type="hidden" name="status" value="{{st}}"><button class="{{'ok' if st not in ('descartado','recusou','sem_resposta') else ''}}">{{rotulo}}</button></form>
+  {% endfor %}
+  <details class="mais"><summary>Outra etapa ▾</summary><div class="menu">
+   {% for k,v in STATUS.items() if k != p.status %}<form method="post" action="/p/{{p.username}}/status"><input type="hidden" name="status" value="{{k}}"><button style="width:100%;border:0;justify-content:flex-start;min-height:34px">{{v}}</button></form>{% endfor %}
+  </div></details>
+ </div>
+</div>
+
 <div class="grid two">
-<div class="card"><h2 style="margin-top:0">Por que essa nota</h2>
-<ul class="motivos" style="font-size:13px">{% for m in p.score_motivos|motivos %}<li>{{m}}</li>{% endfor %}</ul>
-<table style="margin-top:10px">{% for k, v in comp.items() %}<tr><td>{{NOMES[k]}} <span class="mut small">peso {{'%.1f'|format(pesos[k])}}</span></td><td style="width:45%">{% if v is none %}<span class="mut small">não medido</span>{% else %}<div class="bar"><i style="width:{{(v*100)|round}}%"></i></div>{% endif %}</td></tr>{% endfor %}</table>
-<p class="small">Stories estimado: <b>{{p.story_views_estimado|n}}</b>{% if p.story_views_real %} · real: <b>{{p.story_views_real|n}}</b>{% endif %}</p>
+ <div class="card resumo">
+  <h2 style="margin-top:0">Resumo</h2>
+  {% if p.observacoes %}<p class="porque" style="background:var(--bg);padding:10px;border-radius:8px;margin:0 0 12px">{{p.observacoes}}</p>{% endif %}
+  <dl>
+   {% if p.bio %}<dt>Bio</dt><dd>{{p.bio}}</dd>{% endif %}
+   {% if p.publicos %}<dt>Públicos</dt><dd>{{tags(p.publicos)}}</dd>{% endif %}
+   <dt>Seguindo · posts</dt><dd>{{p.seguindo|n}} · {{p.posts|n}}</dd>
+   {% if p.media_views_reels %}<dt>Views por reel</dt><dd>~{{p.media_views_reels|n}}</dd>{% endif %}
+   <dt>Stories ativos</dt><dd>{{ {1:'sim',0:'não'}.get(p.stories_ativos, 'não visto') }}</dd>
+   <dt>Já faz publi</dt><dd>{{ {1:'sim',0:'não'}.get(p.faz_publi, 'não visto') }}</dd>
+   {% if p.contato or p.link_bio %}<dt>Contato</dt><dd>{{p.contato or ''}} {{p.link_bio or ''}}</dd>{% endif %}
+   <dt>Como foi achada</dt><dd class="small">{{p.origem or '?'}} {{p.origem_detalhe or ''}}</dd>
+  </dl>
+ </div>
+
+ <form class="card {{'destaque' if p.status in ('fechado','negociando') and not p.lucro_dia}}" method="post" action="/p/{{p.username}}/resultado">
+  <h2 style="margin-top:0">Resultado da parceria</h2>
+  <p class="small mut" style="margin-top:0">Preencha quando fechar. É o dado que mais ensina o sistema a achar perfis parecidos com os que dão lucro.</p>
+  <div class="fields">
+   <div><label>Lucro no dia (R$)</label><input name="lucro_dia" inputmode="decimal" value="{{p.lucro_dia|v}}" placeholder="ex.: 800"></div>
+   <div><label>Nível</label><select name="resultado_nivel"><option value="">automático pelo lucro</option>{% for k,v in NIVEIS.items() %}<option value="{{k}}" {{'selected' if p.resultado_nivel==k}}>{{v}}</option>{% endfor %}</select></div>
+   <div><label>Views dos stories (do print dela)</label><input name="story_views_real" inputmode="numeric" value="{{p.story_views_real|v}}"></div>
+  </div>
+  <p><button class="p">Salvar resultado</button></p>
+ </form>
 </div>
-<div class="card"><h2 style="margin-top:0">Histórico</h2>
-<table>{% for e in eventos %}<tr><td class="small mut">{{e.criado_em.replace('T',' ')}}</td><td class="small">{{e.tipo}}{% if e.de %} {{STATUS.get(e.de,e.de)}} →{% endif %} {{STATUS.get(e.para, e.para) if e.para else ''}}{% if e.nota %} <span class="mut">— {{e.nota}}</span>{% endif %}</td></tr>{% endfor %}</table></div>
+
+<div class="grid two" style="margin-top:12px">
+ <div class="card"><h2 style="margin-top:0">Por que essa nota</h2>
+  <table>{% for k, v in comp.items() %}<tr><td>{{NOMES[k]}}</td><td style="width:45%">{% if v is none %}<span class="small mut">não visto</span>{% else %}<div class="bar"><i style="width:{{(v*100)|round}}%"></i></div>{% endif %}</td></tr>{% endfor %}</table>
+  <p class="small mut">Stories: estimativa de ~{{p.story_views_estimado|n}} views (conta aproximada, não é dado real).</p>
+ </div>
+ <div class="card"><h2 style="margin-top:0">Histórico</h2>
+  <table>{% for e in eventos %}<tr><td class="small mut" style="white-space:nowrap">{{e.criado_em[:16].replace('T',' ')}}</td><td class="small">{% if e.tipo=='status' %}{{STATUS.get(e.de,e.de)}} → <b>{{STATUS.get(e.para,e.para)}}</b>{% elif e.tipo=='criado' %}achado pelo agente{% else %}{{e.tipo.replace('_',' ')}}: <b>{{e.para}}</b>{% endif %}{% if e.nota and e.tipo!='criado' %} <span class="mut">— {{e.nota}}</span>{% endif %}</td></tr>{% endfor %}</table>
+ </div>
 </div>
-<h2>Dados</h2>
+
+<details class="avancado"><summary>Editar dados do perfil</summary>
 <form class="card" method="post" action="/p/{{p.username}}/editar">
 <div class="fields">
-{% for k, label in [('nome','Nome'),('cidade','Cidade'),('uf','UF'),('seguidores','Seguidores'),('seguindo','Seguindo'),('posts','Posts'),('media_views_reels','Média views reels'),('media_curtidas','Média curtidas'),('media_comentarios','Média comentários'),('estilo_blogueira','Estilo das fechadas (0 a 1)'),('comentarios_reais','Comentários reais (0 a 1)'),('posts_por_semana','Posts por semana'),('contato','Contato'),('link_bio','Link da bio'),('publicos','Públicos (vírgula)'),('tipo_conteudo','Tipo de conteúdo'),('hashtags','Hashtags'),('origem','Origem'),('origem_detalhe','Origem (detalhe)'),('valor_parceria','Valor da parceria (R$)')] %}
-<div><label>{{label}}</label><input name="{{k}}" value="{{p[k] if p[k] is not none else ''}}"></div>{% endfor %}
-{% for k, label in [('stories_ativos','Stories ativos'),('faz_publi','Já faz publi'),('marca_lojas','Marca lojas'),('suspeita_compra','Suspeita seguidores comprados')] %}
-<div><label>{{label}}</label><select name="{{k}}"><option value="" {{'selected' if p[k] is none}}>?</option><option value="1" {{'selected' if p[k]==1}}>sim</option><option value="0" {{'selected' if p[k]==0}}>não</option></select></div>{% endfor %}
+{% for k, label in [('nome','Nome'),('cidade','Cidade'),('uf','UF'),('seguidores','Seguidores'),('seguindo','Seguindo'),('posts','Posts'),('estilo_blogueira','Estilo das fechadas (0 a 1)'),('media_views_reels','Views por reel'),('media_curtidas','Média de curtidas'),('media_comentarios','Média de comentários'),('comentarios_reais','Comentários reais (0 a 1)'),('posts_por_semana','Posts por semana'),('contato','Contato'),('link_bio','Link da bio'),('publicos','Públicos (separe por vírgula)'),('tipo_conteudo','Tipo de conteúdo'),('hashtags','Hashtags'),('origem','Origem'),('origem_detalhe','Origem (detalhe)'),('valor_parceria','Valor pago (R$)')] %}
+<div><label>{{label}}</label><input name="{{k}}" value="{{p[k]|v}}"></div>{% endfor %}
+{% for k, label in [('stories_ativos','Stories ativos'),('faz_publi','Já faz publi'),('marca_lojas','Marca lojas'),('suspeita_compra','Suspeita de seguidores comprados')] %}
+<div><label>{{label}}</label><select name="{{k}}"><option value="" {{'selected' if p[k] is none}}>não visto</option><option value="1" {{'selected' if p[k]==1}}>sim</option><option value="0" {{'selected' if p[k]==0}}>não</option></select></div>{% endfor %}
 <div><label>Referência</label><select name="referencia"><option value="">não</option>{% for r in ['fechado','gostamos'] %}<option {{'selected' if p.referencia==r}}>{{r}}</option>{% endfor %}</select></div>
+<div><label>Sua nota do perfil (1 a 5)</label><select name="qualidade_manual"><option value="">—</option>{% for i in range(1,6) %}<option {{'selected' if p.qualidade_manual==i}}>{{i}}</option>{% endfor %}</select></div>
 </div>
-<div class="fields" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--bd)">
-<div><label><b>Views reais nos stories</b> (do print dela)</label><input name="story_views_real" value="{{p.story_views_real if p.story_views_real is not none else ''}}"></div>
-<div><label><b>Lucro no dia da parceria (R$)</b></label><input name="lucro_dia" value="{{p.lucro_dia if p.lucro_dia is not none else ''}}"></div>
-<div><label><b>Resultado</b></label><select name="resultado_nivel"><option value="">—</option>{% for k,v in NIVEIS.items() %}<option value="{{k}}" {{'selected' if p.resultado_nivel==k}}>{{v}}</option>{% endfor %}</select></div>
-<div><label><b>Sua nota do perfil (1 a 5)</b> — independe de fechar</label><select name="qualidade_manual"><option value="">—</option>{% for i in range(1,6) %}<option {{'selected' if p.qualidade_manual==i}}>{{i}}</option>{% endfor %}</select></div>
-</div>
-<div style="margin-top:10px"><label class="small mut">Bio</label><textarea name="bio" rows="2">{{p.bio or ''}}</textarea></div>
-<div style="margin-top:10px"><label class="small mut">Observações</label><textarea name="observacoes" rows="3">{{p.observacoes or ''}}</textarea></div>
-<div style="margin-top:10px"><button class="p">Salvar</button></div>
+<div style="margin-top:12px"><label class="small mut">Bio</label><textarea name="bio" rows="2">{{p.bio or ''}}</textarea></div>
+<div style="margin-top:12px"><label class="small mut">Observações</label><textarea name="observacoes" rows="3">{{p.observacoes or ''}}</textarea></div>
+<p class="row"><button class="p">Salvar dados</button></p>
 </form>
-<form method="post" action="/p/{{p.username}}/excluir" onsubmit="return confirm('Excluir @{{p.username}}?')" style="margin-top:10px"><button class="x">Excluir perfil</button></form>
+<form method="post" action="/p/{{p.username}}/excluir" onsubmit="return confirm('Excluir @{{p.username}} do sistema?')" style="margin-top:10px"><button class="x">Excluir perfil</button></form>
+</details>
 {% endblock %}

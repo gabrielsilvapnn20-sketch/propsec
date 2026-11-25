@@ -1,8 +1,8 @@
 {% extends "base.html" %}{% from "_macros.html" import score, ig, tags %}
 {% block t %}Referências{% endblock %}{% block c %}
-<h1>Perfis de referência</h1>
-<p class="mut">Perfis que vocês já fecharam ou gostaram (mesmo que não tenham aceitado). O sistema usa eles para aprender o que é um "perfil bom" e o agente procura perfis parecidos com eles.</p>
-<form class="row card" method="post" action="/novo" style="margin-bottom:14px">
+<h1>Referências</h1>
+<p class="sub">Perfis que vocês já fecharam ou gostaram (mesmo que não tenham aceitado). O sistema usa eles para aprender o que é um "perfil bom" e o agente procura perfis parecidos com eles.</p>
+<form class="filtros card" method="post" action="/novo">
  <div><label class="small mut">@ do perfil</label><input name="username" required></div>
  <div><label class="small mut">Tipo</label><select name="referencia"><option value="fechado">fechamos</option><option value="gostamos">gostamos (não fechou)</option></select></div>
  <div><label class="small mut">Status</label><select name="status"><option value="fechado">Fechou parceria</option><option value="recusou">Recusou</option><option value="sem_resposta">Sem resposta</option><option value="aprovado">Ainda não contatado</option></select></div>
@@ -10,7 +10,7 @@
  <button class="p">Adicionar</button>
 </form>
 <p class="small mut">Depois de adicionar, peça ao agente no Claude: <i>"complete os dados das referências"</i> — ele visita cada perfil e preenche seguidores, views, engajamento etc.</p>
-<table><tr><th>Perfil</th><th>Tipo</th><th>Resultado</th><th class="num">Seg.</th><th class="num">Views reels</th><th class="num">Stories real</th><th>Público</th><th>Nota</th></tr>
+<div class="tabela"><table><tr><th>Perfil</th><th>Tipo</th><th>Resultado</th><th class="num">Seg.</th><th class="num">Views reels</th><th class="num">Stories real</th><th>Público</th><th>Nota</th></tr>
 {% for p in refs %}<tr><td>{{ig(p.username)}}</td><td>{{p.referencia}}</td><td>{% if p.lucro_dia %}R$ {{p.lucro_dia|n}}/dia{% elif p.resultado_nivel %}<span class="st">{{NIVEIS[p.resultado_nivel]}}</span>{% else %}<span class="mut">{{STATUS[p.status]}}</span>{% endif %}</td><td class="num">{{p.seguidores|n}}</td><td class="num">{{p.media_views_reels|n}}</td><td class="num">{{p.story_views_real|n}}</td><td>{{tags(p.publicos)}}</td><td>{{score(p.score)}}</td></tr>
-{% else %}<tr><td colspan="8" class="mut">Nenhuma referência ainda.</td></tr>{% endfor %}</table>
+{% else %}<tr><td colspan="8" class="mut">Nenhuma referência ainda.</td></tr>{% endfor %}</table></div>
 {% endblock %}

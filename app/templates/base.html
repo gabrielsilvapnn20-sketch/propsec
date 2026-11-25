@@ -1,30 +1,38 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{% block t %}PropSec{% endblock %} · PropSec</title><link rel="stylesheet" href="/static/style.css"></head><body>
 {% set path = request.url.path %}
-<nav><b>PropSec</b>
-<a href="/" class="{{'on' if path=='/'}}">Início</a>
-<a href="/fila" class="{{'on' if path.startswith('/fila')}}">Fila de aprovação</a>
-<a href="/pipeline" class="{{'on' if path.startswith('/pipeline')}}">Pipeline</a>
-<a href="/perfis" class="{{'on' if path.startswith('/perfis')}}">Todos os perfis</a>
-<a href="/referencias" class="{{'on' if path.startswith('/referencias')}}">Referências</a>
-<a href="/seguranca" class="{{'on' if path.startswith('/seguranca')}}">Segurança</a>
-<a href="/aprendizado" class="{{'on' if path.startswith('/aprendizado')}}">Aprendizado</a>
-<span id="agente" class="st" style="margin-left:auto" title="o que o agente está fazendo agora"></span>
-<span class="small mut">v{{versao}}</span>
-</nav><main>{% block c %}{% endblock %}</main>
+<nav>
+ <a class="logo" href="/">PropSec</a>
+ <a class="tab {{'on' if path=='/'}}" href="/">Hoje</a>
+ <a class="tab {{'on' if path.startswith('/fila')}}" href="/fila">Aprovar {% if menu.fila %}<span class="badge">{{menu.fila}}</span>{% endif %}</a>
+ <a class="tab {{'on' if path.startswith('/conversas')}}" href="/conversas">Conversas {% if menu.conversas %}<span class="badge">{{menu.conversas}}</span>{% endif %}</a>
+ <a class="tab {{'on' if path.startswith('/seguranca')}}" href="/seguranca">Agente</a>
+ <details class="mais"><summary>Mais ▾</summary><div class="menu">
+  <a href="/perfis">Todos os perfis</a>
+  <a href="/referencias">Referências (parcerias antigas)</a>
+  <a href="/aprendizado">Resultados e aprendizado</a>
+  <a href="/exportar.csv">Baixar planilha (CSV)</a>
+ </div></details>
+ <span id="agente" class="agente" title="O que o agente está fazendo agora"><i class="dot"></i><span>…</span></span>
+ <span class="versao">v{{versao}}</span>
+</nav>
+<main>{% block c %}{% endblock %}</main>
 <script>
 (function(){
-  const el=document.getElementById('agente');
-  const txt={parado:'⏸ agente parado',buscando:'🔎 agente buscando perfis',analisando:'👀 analisando',aguardando:'⏳ aguardando intervalo seguro',bloqueado:'■ agente bloqueado'};
+  const el=document.getElementById('agente'), tx=el.querySelector('span');
+  const nome={parado:'Agente parado',buscando:'Agente buscando perfis',analisando:'Analisando',aguardando:'Pausa de segurança',bloqueado:'Agente bloqueado'};
+  const classe={buscando:'ativo',analisando:'ativo',aguardando:'esperando',bloqueado:'bloqueado'};
   let a={{ agente|tojson }};
   function pinta(){
-    let t=txt[a.estado]||a.estado;
-    if(a.perfil&&a.estado!=='parado') t+=' @'+a.perfil;
-    if(a.estado==='aguardando'&&a.ate){const s=Math.max(0,Math.round((new Date(a.ate)-new Date())/1000));t+=' — '+s+' s';}
-    el.textContent=t;
-    el.style.color=a.estado==='bloqueado'?'var(--bad)':(a.estado==='parado'?'var(--mut)':'var(--ok)');
+    let t=nome[a.estado]||a.estado;
+    if(a.perfil&&!['parado','buscando'].includes(a.estado)) t+=' @'+a.perfil;
+    if(a.estado==='aguardando'&&a.ate){const s=Math.max(0,Math.round((new Date(a.ate)-new Date())/1000));t+=' · '+s+' s';}
+    tx.textContent=t; el.className='agente '+(classe[a.estado]||'');
   }
   pinta(); setInterval(pinta,1000);
   setInterval(()=>fetch('/api/agente').then(r=>r.json()).then(j=>{a=j;pinta();}).catch(()=>{}),5000);
+  document.addEventListener('click',e=>{const d=document.querySelector('details.mais[open]');if(d&&!d.contains(e.target))d.removeAttribute('open');});
 })();
-</script></body></html>
+</script>
+{% block js %}{% endblock %}
+</body></html>

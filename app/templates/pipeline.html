@@ -1,10 +1,41 @@
-{% extends "base.html" %}{% from "_macros.html" import score %}
-{% block t %}Pipeline{% endblock %}{% block c %}
-<h1>Pipeline de contato</h1>
-<p class="mut">Mova o perfil conforme a conversa anda. Quando ela mandar o print dos stories, registre as views no perfil — é o dado que mais ensina o sistema.</p>
-<div class="kanban">{% for s, nome, rows in colunas %}<div class="col"><h3>{{nome}} <span class="mut">{{rows|length}}</span></h3>
-{% for p in rows %}<div class="it"><div style="display:flex;justify-content:space-between"><a href="/p/{{p.username}}">@{{p.username}}</a>{{score(p.score)}}</div>
-<div class="small mut">{{p.seguidores|n}} seg · {{p.cidade or '?'}}{% if p.story_views_real %} · <b>{{p.story_views_real|n}}</b> stories{% endif %}</div>
-<form method="post" action="/p/{{p.username}}/status"><select name="status" onchange="this.form.submit()">{% for e in etapas %}<option value="{{e}}" {{'selected' if e==s}}>{{STATUS[e]}}</option>{% endfor %}<option value="descartado">Descartar</option></select></form>
-</div>{% endfor %}</div>{% endfor %}</div>
+{% extends "base.html" %}{% from "_macros.html" import score, ig, local %}
+{% block t %}Conversas{% endblock %}{% block c %}
+<h1>Conversas</h1>
+<p class="sub">Acompanhe cada perfil aprovado até fechar. Um clique move para a próxima etapa.</p>
+<div class="abas">
+ <a href="?aba=andamento" class="{{'on' if aba=='andamento'}}">Em andamento ({{ (contagem.aprovado or 0) + (contagem.contatado or 0) + (contagem.respondeu or 0) + (contagem.negociando or 0) }})</a>
+ <a href="?aba=fechado" class="{{'on' if aba=='fechado'}}">Fechadas ({{contagem.fechado or 0}})</a>
+ <a href="?aba=recusou" class="{{'on' if aba=='recusou'}}">Recusaram ({{contagem.recusou or 0}})</a>
+ <a href="?aba=sem_resposta" class="{{'on' if aba=='sem_resposta'}}">Sem resposta ({{contagem.sem_resposta or 0}})</a>
+</div>
+
+{% macro botoes(p) -%}
+<div class="bts">{% for st, rotulo in PROXIMOS[p.status] %}
+ <form method="post" action="/p/{{p.username}}/status" class="inline"><input type="hidden" name="status" value="{{st}}"><button class="{{'ok' if st in ('contatado','respondeu','negociando','fechado') else ''}}">{{rotulo}}</button></form>
+{% endfor %}</div>
+{%- endmacro %}
+
+{% if aba == 'andamento' %}
+<div class="kanban">{% for s, nome, rows in colunas %}
+ <div class="col"><h3>{{nome}} <span class="mut">{{rows|length}}</span></h3><p>{{DESCR_ETAPA[s]}}</p>
+ {% for p in rows %}{% set d = p.atualizado_em|dias %}
+  <div class="it">
+   <div class="l1"><span>{{ig(p.username)}}</span>{{score(p.score)}}</div>
+   <div class="l2">{{p.seguidores|n}} seg · {{local(p)}}
+    {% if d is not none and d >= dias_parado and s != 'aprovado' %} · <span class="st warn">parada há {{d}} dias</span>
+    {% elif d is not none and d >= 1 %} · há {{d}} dia{{'s' if d > 1}}{% endif %}</div>
+   {{botoes(p)}}
+  </div>
+ {% else %}<div class="small mut">Ninguém aqui.</div>{% endfor %}
+ </div>
+{% endfor %}</div>
+{% else %}
+ {% if lista %}
+ <div class="tabela"><table><tr><th>Perfil</th><th>Cidade</th><th class="num">Seguidores</th>{% if aba=='fechado' %}<th>Resultado</th>{% endif %}<th>Desde</th><th></th></tr>
+ {% for p in lista %}<tr><td>{{ig(p.username)}}</td><td>{{local(p)}}</td><td class="num">{{p.seguidores|n}}</td>
+  {% if aba=='fechado' %}<td>{% if p.lucro_dia %}R$ {{p.lucro_dia|n}}/dia{% elif p.resultado_nivel %}{{NIVEIS[p.resultado_nivel]}}{% else %}<a class="st warn" href="/p/{{p.username}}">registrar resultado</a>{% endif %}</td>{% endif %}
+  <td class="small mut">{{p.atualizado_em[:10]}}</td><td>{{botoes(p)}}</td></tr>{% endfor %}
+ </table></div>
+ {% else %}<div class="vazio">Nenhum perfil nesta aba.</div>{% endif %}
+{% endif %}
 {% endblock %}

@@ -156,7 +156,9 @@ def desempenho_fontes(con):
                SUM(status IN ('contatado','respondeu','negociando','fechado','recusou','sem_resposta')) AS contatados,
                SUM(status IN ('respondeu','negociando','fechado','recusou')) AS responderam,
                SUM(status = 'fechado') AS fechados,
-               SUM(status = 'descartado') AS descartados
+               SUM(status = 'descartado') AS descartados,
+               SUM(status NOT IN ('novo','descartado','ignorado')) AS aceitos,
+               SUM(status = 'ignorado') AS ignorados
         FROM perfis WHERE referencia IS NULL
         GROUP BY 1, 2 ORDER BY bons DESC, score_medio DESC
         """

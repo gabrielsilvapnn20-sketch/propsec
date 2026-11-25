@@ -1,11 +1,47 @@
-{% extends "base.html" %}{% block t %}Fila{% endblock %}{% block c %}
-<h1>Fila de aprovação <span class="mut small">({{perfis|length}})</span></h1>
-<p class="mut">Perfis que o agente encontrou. Aprovar manda para o pipeline; descartar ensina o sistema que o perfil não serve.</p>
-<form class="row card" method="get" style="margin-bottom:14px">
- <div><label class="small mut">UF</label><input name="uf" value="{{uf}}" size="3"></div>
- <div><label class="small mut">Nota mínima</label><input name="min_score" type="number" value="{{min_score}}" style="width:90px"></div>
- <div><label class="small mut">Público (ex: mãe solo)</label><input name="publico" value="{{publico}}"></div>
- <button>Filtrar</button>
+{% extends "base.html" %}{% block t %}Aprovar{% endblock %}{% block c %}
+<h1>Aprovar perfis <span class="mut" id="cont">({{perfis|length}})</span></h1>
+<p class="sub">Perfis que o agente achou. <b>Aprovar</b> manda para Conversas e vira semente para o agente buscar parecidas. <b>Descartar</b> ensina o que não serve. Atalhos: <kbd>A</kbd> aprova e <kbd>D</kbd> descarta o perfil destacado.</p>
+<form class="filtros" method="get">
+ <div style="flex:1;min-width:200px"><label class="small mut">Buscar (cidade, UF, público, bio)</label><input name="q" value="{{q}}" placeholder="ex.: Codó, mãe, forró"></div>
+ <div><label class="small mut">Ordenar por</label><select name="ordem" onchange="this.form.submit()">{% for k,l in [('nota','Maior nota'),('seguidores','Mais seguidores'),('recentes','Mais recentes')] %}<option value="{{k}}" {{'selected' if k==ordem}}>{{l}}</option>{% endfor %}</select></div>
+ <button>Filtrar</button>{% if q %} <a class="btn" href="/fila">Limpar</a>{% endif %}
 </form>
-<div class="cards">{% for p in perfis %}{% include "_card.html" %}{% else %}<p class="mut">Fila vazia.</p>{% endfor %}</div>
+<div class="cards" id="cards">{% for p in perfis %}{% include "_card.html" %}{% endfor %}</div>
+<div class="vazio" id="vazio" {% if perfis %}hidden{% endif %}>Nada para aprovar. Quando o agente achar perfis novos, eles aparecem aqui.</div>
+<div class="toast" id="toast"><span id="toast-txt"></span><button id="desfazer">Desfazer</button></div>
+{% endblock %}
+{% block js %}
+<script>
+(function(){
+  const cards=document.getElementById('cards'), toast=document.getElementById('toast');
+  let ultimo=null, timer=null;
+  function atual(){return cards.querySelector('.pc.foco')||cards.querySelector('.pc');}
+  function foco(el){cards.querySelectorAll('.pc.foco').forEach(c=>c.classList.remove('foco'));if(el){el.classList.add('foco');}}
+  function conta(){const n=cards.querySelectorAll('.pc').length;document.getElementById('cont').textContent='('+n+')';document.getElementById('vazio').hidden=n>0;
+    const b=document.querySelector('nav .badge');if(b){b.textContent=n;b.hidden=!n;}}
+  async function muda(u,status){const r=await fetch('/api/perfis/'+encodeURIComponent(u)+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});if(!r.ok)throw new Error('falhou');return r.json();}
+  async function decide(card,status){
+    const u=card.dataset.u, prox=card.nextElementSibling||card.previousElementSibling;
+    try{await muda(u,status);}catch(e){alert('Não consegui salvar. O painel está aberto?');return;}
+    card.classList.add('saindo');
+    setTimeout(()=>{ultimo={u,html:card.outerHTML,idx:[...cards.children].indexOf(card)};card.remove();foco(prox&&prox.isConnected?prox:atual());conta();},220);
+    document.getElementById('toast-txt').textContent='@'+u+(status==='aprovado'?' aprovado':' descartado');
+    toast.style.display='flex';clearTimeout(timer);timer=setTimeout(()=>toast.style.display='none',5000);
+  }
+  document.getElementById('desfazer').onclick=async()=>{
+    if(!ultimo)return; await muda(ultimo.u,'novo');
+    const t=document.createElement('div');t.innerHTML=ultimo.html;const c=t.firstElementChild;c.classList.remove('saindo');
+    cards.insertBefore(c,cards.children[ultimo.idx]||null);foco(c);conta();ultimo=null;toast.style.display='none';
+  };
+  cards.addEventListener('click',e=>{const b=e.target.closest('button[data-acao]');if(b)decide(b.closest('.pc'),b.dataset.acao);});
+  cards.addEventListener('focusin',e=>{const c=e.target.closest('.pc');if(c)foco(c);});
+  document.addEventListener('keydown',e=>{
+    if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;
+    const c=atual(); if(!c)return;
+    if(e.key==='a'||e.key==='A'){e.preventDefault();decide(c,'aprovado');}
+    if(e.key==='d'||e.key==='D'){e.preventDefault();decide(c,'descartado');}
+  });
+  foco(atual());
+})();
+</script>
 {% endblock %}

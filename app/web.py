@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException, Request
@@ -28,21 +29,74 @@ def _fmt_int(v):
         return str(v)
 
 
+def _valor(v):
+    """Valor para campo de formulário: sem '.0' sobrando, vazio se nulo."""
+    if v is None:
+        return ""
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v)
+
+
+def _dias(ts):
+    if not ts:
+        return None
+    try:
+        return (datetime.now() - datetime.fromisoformat(ts)).days
+    except ValueError:
+        return None
+
+
 tpl.env.filters["n"] = _fmt_int
+tpl.env.filters["v"] = _valor
+tpl.env.filters["dias"] = _dias
 tpl.env.filters["motivos"] = lambda s: json.loads(s) if s else []
 tpl.env.globals["STATUS"] = db.STATUS
 tpl.env.globals["NOMES"] = scoring.NOMES
 tpl.env.globals["NIVEIS"] = db.NIVEIS_RESULTADO
 
 
-VERSAO = "2026.11.25-c"
+VERSAO = "2026.11.26-a"
+
+# Próximo passo de cada etapa (botões nas Conversas e no perfil)
+PROXIMOS = {
+    "novo": [("aprovado", "Aprovar"), ("descartado", "Descartar")],
+    "aprovado": [("contatado", "Enviei mensagem")],
+    "contatado": [("respondeu", "Respondeu"), ("sem_resposta", "Sem resposta")],
+    "respondeu": [("negociando", "Negociando"), ("recusou", "Recusou")],
+    "negociando": [("fechado", "Fechou parceria"), ("recusou", "Recusou")],
+    "sem_resposta": [("respondeu", "Respondeu depois")],
+    "recusou": [("negociando", "Voltou a negociar")],
+    "fechado": [],
+    "descartado": [("novo", "Voltar para a fila")],
+    "ignorado": [("novo", "Voltar para a fila")],
+}
+tpl.env.globals["PROXIMOS"] = PROXIMOS
+EM_ANDAMENTO = ["aprovado", "contatado", "respondeu", "negociando"]
+DESCR_ETAPA = {
+    "aprovado": "Aprovadas, falta mandar mensagem",
+    "contatado": "Mensagem enviada, esperando resposta",
+    "respondeu": "Responderam",
+    "negociando": "Conversando valores",
+}
+tpl.env.globals["DESCR_ETAPA"] = DESCR_ETAPA
+DIAS_PARADO = 2
+
+
+def _menu(con):
+    fila = con.execute("SELECT COUNT(*) FROM perfis WHERE status='novo'").fetchone()[0]
+    aprovados = con.execute("SELECT COUNT(*) FROM perfis WHERE status='aprovado' AND referencia IS NULL").fetchone()[0]
+    return {"fila": fila, "conversas": aprovados}
 
 
 def render(request, nome, **ctx):
     try:
-        ctx.setdefault("agente", seguranca.ler_atividade(seguranca.conectar()))
+        con = seguranca.conectar()
+        ctx.setdefault("agente", seguranca.ler_atividade(con))
+        ctx.setdefault("menu", _menu(con))
     except Exception:
         ctx.setdefault("agente", {"estado": "parado"})
+        ctx.setdefault("menu", {})
     ctx["versao"] = VERSAO
     return tpl.TemplateResponse(request, nome, ctx)
 
@@ -58,51 +112,65 @@ def _pct(a, b):
 # ---------------------------------------------------------------- páginas
 @app.get("/", response_class=HTMLResponse)
 def inicio(request: Request):
-    con = db.conectar()
-    # Referências (parcerias antigas) e "já contatados por fora" não entram nas taxas do funil.
-    cont = {r["status"]: r["n"] for r in con.execute(
-        "SELECT status, COUNT(*) n FROM perfis WHERE referencia IS NULL GROUP BY status")}
+    con = seguranca.conectar()
+    base = "FROM perfis WHERE referencia IS NULL"
+    cont = {r["status"]: r["n"] for r in con.execute(f"SELECT status, COUNT(*) n {base} GROUP BY status")}
+    # taxas só com o que passou pelo sistema (sem 'já contatados por fora')
     taxa = {r["status"]: r["n"] for r in con.execute(
-        "SELECT status, COUNT(*) n FROM perfis WHERE referencia IS NULL AND COALESCE(origem,'') != 'manual' "
-        "GROUP BY status")}
-    contatados = sum(taxa.get(s, 0) for s in db.STATUS_CONTATADOS)
-    responderam = sum(taxa.get(s, 0) for s in db.STATUS_RESPONDERAM)
+        f"SELECT status, COUNT(*) n {base} AND COALESCE(origem,'') != 'manual' GROUP BY status")}
+    contatados = sum(taxa.get(x, 0) for x in db.STATUS_CONTATADOS)
+    responderam = sum(taxa.get(x, 0) for x in db.STATUS_RESPONDERAM)
     fechados = taxa.get("fechado", 0)
-    n_refs = con.execute("SELECT COUNT(*) FROM perfis WHERE referencia IS NOT NULL").fetchone()[0]
-    ja_contatados = con.execute("SELECT COUNT(*) FROM perfis WHERE referencia IS NULL AND origem='manual' "
-                                "AND status='contatado'").fetchone()[0]
-    lucro = con.execute("SELECT SUM(lucro_dia) s, COUNT(*) FILTER (WHERE resultado_nivel='alto') a "
-                        "FROM perfis WHERE status='fechado'").fetchone()
-    views = con.execute("SELECT AVG(story_views_real) a, COUNT(story_views_real) n FROM perfis "
-                        "WHERE story_views_real IS NOT NULL").fetchone()
-    semana = con.execute("SELECT COUNT(*) FROM perfis WHERE criado_em >= date('now','-7 day') "
-                         "AND referencia IS NULL").fetchone()[0]
-    kpis = {
-        "fila": cont.get("novo", 0), "aprovados": cont.get("aprovado", 0),
-        "contatados": contatados, "responderam": responderam, "fechados": fechados,
-        "taxa_resposta": _pct(responderam, contatados), "taxa_fechamento": _pct(fechados, contatados),
-        "views_media": views["a"], "views_n": views["n"], "semana": semana,
-        "lucro_total": lucro["s"], "resultado_alto": lucro["a"],
-        "referencias": n_refs, "ja_contatados": ja_contatados,
-    }
-    funil = [(s, db.STATUS[s], cont.get(s, 0)) for s in db.STATUS]
-    top = con.execute("SELECT * FROM perfis WHERE status='novo' ORDER BY score DESC LIMIT 8").fetchall()
-    return render(request, "inicio.html", kpis=kpis, funil=funil, top=top,
-                  fontes=aprendizado.desempenho_fontes(con)[:8],
-                  cidades=aprendizado.taxas_por(con, "cidade")[:8])
+    semana = con.execute(f"SELECT COUNT(*) {base} AND criado_em >= date('now','-7 day') "
+                         "AND status != 'ignorado'").fetchone()[0]
+    lucro = con.execute(f"SELECT SUM(lucro_dia) {base} AND status='fechado'").fetchone()[0]
+
+    parados = con.execute(
+        f"SELECT * {base} AND status IN ('contatado','respondeu','negociando') "
+        "AND atualizado_em < datetime('now','localtime',?) ORDER BY atualizado_em",
+        (f"-{DIAS_PARADO} day",)).fetchall()
+    sem_resultado = con.execute(
+        f"SELECT * {base} AND status='fechado' AND lucro_dia IS NULL AND resultado_nivel IS NULL").fetchall()
+    pode, motivo, _ = seguranca.verificar(con)
+
+    acoes = []
+    if not pode and "PAUSADO" in motivo:
+        acoes.append({"n": "!", "titulo": "O agente está pausado", "texto": motivo, "url": "/seguranca",
+                      "ir": "Ver agente", "alerta": True})
+    if cont.get("novo"):
+        acoes.append({"n": cont["novo"], "titulo": "perfis esperando sua aprovação",
+                      "texto": "O agente achou; aprove ou descarte.", "url": "/fila", "ir": "Aprovar"})
+    if cont.get("aprovado"):
+        acoes.append({"n": cont["aprovado"], "titulo": "aprovados esperando mensagem",
+                      "texto": "Mande a mensagem e marque 'Enviei mensagem'.", "url": "/conversas", "ir": "Abrir"})
+    if parados:
+        acoes.append({"n": len(parados), "titulo": f"conversas paradas há mais de {DIAS_PARADO} dias",
+                      "texto": ", ".join("@" + p["username"] for p in parados[:4]) + (" …" if len(parados) > 4 else ""),
+                      "url": "/conversas", "ir": "Ver"})
+    if sem_resultado:
+        acoes.append({"n": len(sem_resultado), "titulo": "parcerias fechadas sem resultado registrado",
+                      "texto": "Registre o lucro do dia: é o que mais ensina o sistema.",
+                      "url": f"/p/{sem_resultado[0]['username']}", "ir": "Registrar"})
+
+    etapas = [("novo", "Na fila"), ("aprovado", "Aprovados"), ("contatado", "Mensagem enviada"),
+              ("respondeu", "Responderam"), ("negociando", "Negociando"), ("fechado", "Fechadas")]
+    funil = [(k, nome, cont.get(k, 0)) for k, nome in etapas]
+    top = con.execute("SELECT * FROM perfis WHERE status='novo' ORDER BY score DESC LIMIT 5").fetchall()
+    kpis = {"semana": semana, "contatados": contatados, "taxa_resposta": _pct(responderam, contatados),
+            "fechados": fechados, "lucro": lucro}
+    return render(request, "inicio.html", acoes=acoes, kpis=kpis, funil=funil, top=top)
 
 
 @app.get("/fila", response_class=HTMLResponse)
-def fila(request: Request, uf: str = "", min_score: float = 0, publico: str = ""):
+def fila(request: Request, q: str = "", ordem: str = "nota"):
     con = db.conectar()
-    sql = "SELECT * FROM perfis WHERE status='novo' AND score >= ?"
-    args: list = [min_score]
-    if uf:
-        sql += " AND uf = ?"; args.append(uf.upper())
-    if publico:
-        sql += " AND publicos LIKE ?"; args.append(f"%{publico}%")
-    perfis = con.execute(sql + " ORDER BY score DESC LIMIT 200", args).fetchall()
-    return render(request, "fila.html", perfis=perfis, uf=uf, min_score=min_score, publico=publico)
+    sql, args = "SELECT * FROM perfis WHERE status='novo'", []
+    if q:
+        sql += " AND (cidade LIKE ? OR uf LIKE ? OR publicos LIKE ? OR bio LIKE ? OR username LIKE ?)"
+        args += [f"%{q}%"] * 5
+    ordens = {"nota": "score DESC", "seguidores": "seguidores DESC", "recentes": "criado_em DESC"}
+    perfis = con.execute(f"{sql} ORDER BY {ordens.get(ordem, 'score DESC')} LIMIT 200", args).fetchall()
+    return render(request, "fila.html", perfis=perfis, q=q, ordem=ordem)
 
 
 @app.get("/perfis", response_class=HTMLResponse)
@@ -120,18 +188,26 @@ def lista(request: Request, status: str = "", q: str = "", ordem: str = "score")
     return render(request, "perfis.html", perfis=perfis, status=status, q=q, ordem=ordem)
 
 
-ETAPAS_PIPELINE = ["aprovado", "contatado", "respondeu", "negociando", "fechado", "recusou", "sem_resposta"]
+@app.get("/pipeline")
+def pipeline_antigo():
+    return RedirectResponse("/conversas", status_code=301)
 
 
-@app.get("/pipeline", response_class=HTMLResponse)
-def pipeline(request: Request):
+@app.get("/conversas", response_class=HTMLResponse)
+def conversas(request: Request, aba: str = "andamento"):
     con = db.conectar()
-    colunas = []
-    for s in ETAPAS_PIPELINE:
-        rows = con.execute("SELECT * FROM perfis WHERE status=? AND referencia IS NULL "
-                           "ORDER BY atualizado_em DESC LIMIT 100", (s,)).fetchall()
-        colunas.append((s, db.STATUS[s], rows))
-    return render(request, "pipeline.html", colunas=colunas, etapas=ETAPAS_PIPELINE)
+    q = "SELECT * FROM perfis WHERE status=? AND referencia IS NULL ORDER BY atualizado_em LIMIT 200"
+    contagem = {r["status"]: r["n"] for r in con.execute(
+        "SELECT status, COUNT(*) n FROM perfis WHERE referencia IS NULL GROUP BY status")}
+    if aba == "andamento":
+        colunas = [(st, db.STATUS[st], con.execute(q, (st,)).fetchall()) for st in EM_ANDAMENTO]
+        lista = []
+    else:
+        colunas = []
+        lista = con.execute(q.replace("ORDER BY atualizado_em", "ORDER BY atualizado_em DESC"), (aba,)).fetchall() \
+            if aba in ("fechado", "recusou", "sem_resposta") else []
+    return render(request, "pipeline.html", colunas=colunas, lista=lista, aba=aba, contagem=contagem,
+                  dias_parado=DIAS_PARADO)
 
 
 @app.get("/p/{username}", response_class=HTMLResponse)
@@ -159,8 +235,13 @@ def pag_aprendizado(request: Request):
     con = db.conectar()
     pesos, cfg = scoring.carregar(con)
     simulacao = aprendizado.recalibrar(con, aplicar=False)
+    fontes = aprendizado.desempenho_fontes(con)
+    for f in fontes:
+        avaliados = (f["aceitos"] or 0) + (f["descartados"] or 0)
+        f["taxa_aprov"] = _pct(f["aceitos"] or 0, avaliados) if avaliados else None
+        f["taxa_resp"] = _pct(f["responderam"] or 0, f["contatados"] or 0) if f["contatados"] else None
     return render(request, "aprendizado.html", pesos=pesos, cfg=cfg, sim=simulacao,
-                  fontes=aprendizado.desempenho_fontes(con),
+                  fontes=fontes,
                   por_origem=aprendizado.taxas_por(con, "origem"),
                   por_cidade=aprendizado.taxas_por(con, "cidade"),
                   historico=list(reversed(db.get_config(con, "historico_pesos", []))))
@@ -175,6 +256,49 @@ def acao_status(request: Request, username: str, status: str = Form(...), nota: 
         raise HTTPException(404)
     db.mudar_status(con, p["id"], status, nota=nota or None)
     return _voltar(request)
+
+
+@app.post("/p/{username}/resultado")
+def acao_resultado(username: str, lucro_dia: str = Form(""), resultado_nivel: str = Form(""),
+                   story_views_real: str = Form("")):
+    con = db.conectar()
+    p = db.buscar_perfil(con, username)
+    if not p:
+        raise HTTPException(404)
+    def num(x):
+        x = x.strip().replace("R$", "").replace(".", "").replace(",", ".")
+        return float(x) if x else None
+    lucro, views = num(lucro_dia), num(story_views_real)
+    if lucro is not None:
+        con.execute("UPDATE perfis SET lucro_dia=? WHERE id=?", (lucro, p["id"]))
+        db.registrar_evento(con, p["id"], "lucro_dia", para=f"R$ {lucro:.0f}")
+        if not resultado_nivel:
+            resultado_nivel = "alto" if lucro >= 1000 else ("medio" if lucro >= 200 else "baixo")
+    if resultado_nivel in db.NIVEIS_RESULTADO:
+        con.execute("UPDATE perfis SET resultado_nivel=? WHERE id=?", (resultado_nivel, p["id"]))
+    if views is not None:
+        con.execute("UPDATE perfis SET story_views_real=?, story_views_informado_em=? WHERE id=?",
+                    (views, db.agora(), p["id"]))
+        db.registrar_evento(con, p["id"], "views_stories", para=str(int(views)))
+    scoring.rescore_perfil(con, p["id"])
+    con.commit()
+    return RedirectResponse(f"/p/{p['username']}", status_code=303)
+
+
+@app.post("/api/perfis/{username}/status")
+async def api_status(username: str, request: Request):
+    """Muda a etapa sem recarregar a página (fila de aprovação)."""
+    con = db.conectar()
+    p = db.buscar_perfil(con, username)
+    if not p:
+        raise HTTPException(404)
+    novo = (await request.json()).get("status")
+    if novo not in db.STATUS:
+        raise HTTPException(400, "status inválido")
+    anterior = p["status"]
+    db.mudar_status(con, p["id"], novo, nota="pelo painel")
+    return {"ok": True, "username": p["username"], "status": novo, "anterior": anterior,
+            "fila": con.execute("SELECT COUNT(*) FROM perfis WHERE status='novo'").fetchone()[0]}
 
 
 @app.post("/p/{username}/editar")
@@ -263,8 +387,10 @@ def pag_seguranca(request: Request):
     pode, motivo, _ = seguranca.verificar(con)
     visitas = con.execute("SELECT * FROM visitas ORDER BY id DESC LIMIT 40").fetchall()
     alertas = con.execute("SELECT * FROM alertas ORDER BY id DESC LIMIT 20").fetchall()
-    return render(request, "seguranca.html", cfg=seguranca.config(con), st=seguranca.estado(con),
+    cfg = seguranca.config(con)
+    return render(request, "seguranca.html", cfg=cfg, modo=_modo_atual(cfg), st=seguranca.estado(con),
                   c=seguranca.contagens(con), risco=seguranca.risco(con), pode=pode, motivo=motivo,
+                  ativ=seguranca.ler_atividade(con),
                   visitas=visitas, alertas=alertas)
 
 
@@ -298,16 +424,26 @@ async def seg_config(request: Request):
     return RedirectResponse("/seguranca", status_code=303)
 
 
-@app.post("/seguranca/perfil/{nome}")
-def seg_perfil(nome: str):
-    perfis = {
+MODOS = {
         "cautela": {"intervalo_min": 45, "intervalo_max": 120, "perfis_por_sessao": 15, "perfis_por_hora": 15,
                     "perfis_por_dia": 30, "pausa_longa_a_cada": 6, "pausa_longa_min": 300, "pausa_longa_max": 480},
         "normal": {k: seguranca.PADRAO[k] for k in ("intervalo_min", "intervalo_max", "perfis_por_sessao",
                    "perfis_por_hora", "perfis_por_dia", "pausa_longa_a_cada", "pausa_longa_min", "pausa_longa_max")},
         "acelerado": {"intervalo_min": 20, "intervalo_max": 60, "perfis_por_sessao": 40, "perfis_por_hora": 40,
                       "perfis_por_dia": 120, "pausa_longa_a_cada": 10, "pausa_longa_min": 180, "pausa_longa_max": 360},
-    }
+}
+
+
+def _modo_atual(cfg):
+    for nome, valores in MODOS.items():
+        if all(cfg.get(k) == v for k, v in valores.items()):
+            return nome
+    return "personalizado"
+
+
+@app.post("/seguranca/perfil/{nome}")
+def seg_perfil(nome: str):
+    perfis = MODOS
     if nome not in perfis:
         raise HTTPException(404)
     con = seguranca.conectar()
