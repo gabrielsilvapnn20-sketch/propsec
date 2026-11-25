@@ -29,7 +29,7 @@ Trabalhe numa aba nova do Chrome; não mexa nas outras abas.
 ```bash
 python propsec.py sessao inicio
 python propsec.py exemplos
-python propsec.py proximas-fontes
+python propsec.py proximas-fontes 20     # use o número de perfis pedido pelo usuário
 ```
 **Leia `exemplos` com atenção antes de começar:** são perfis reais que o usuário fechou,
 destacou, aprovou e descartou. Sua nota de estilo deve imitar o gosto dele, não o seu.
@@ -42,7 +42,23 @@ terminar, diga ao usuário para abrir uma **conversa nova** para a próxima sess
 **Comandos:** use sempre `python propsec.py ...` sozinho, sem `echo ... |`, `&&` ou `cd`
 na frente, para que um único padrão de permissão cubra todos.
 
-## 2. Caminho principal: sugestões a partir de perfis bons
+## 2. Equilíbrio: seguir a linha e explorar
+
+O plano de `proximas-fontes` divide a sessão em três partes — respeite as proporções:
+- **A. Linha aprovada (~50%)** — sugestões a partir de fechadas, aprovadas e referências.
+- **B. Potencial (~20%)** — sugestões a partir de achados novos com nota boa que o usuário
+  ainda não avaliou (bola de neve para fora da rede).
+- **C. Exploração (~30%)** — cidades do interior, lojas (aba Marcados), hashtags e buscas,
+  sorteadas para variar. Aqui o objetivo é **descobrir estilos novos**: salve também perfis
+  diferentes das aprovadas (estilo ≥ 0.5) se tiverem sinais de público real (comentários de
+  gente da cidade, "seguido por" locais, publi de lojas da região) e escreva
+  "exploração: <o que é diferente>" nas observações.
+
+Os `exemplos` mostram o gosto do usuário, mas são **guia, não filtro**: não descarte um
+perfil só porque não se parece com as aprovadas. É o usuário quem decide na fila; os perfis de
+exploração que ele aprovar viram novos caminhos.
+
+## 2.1 Como seguir sugestões a partir de um perfil
 
 O usuário quer **perfis parecidos com os que já deram certo**, achados pelas sugestões do
 próprio Instagram. `proximas-fontes` lista as **sementes** (fechadas, aprovadas, referências).

@@ -162,25 +162,54 @@ def _sementes(con, limite=12):
 
 
 def cmd_proximas_fontes(a):
-    """Plano da sessão: principalmente SUGESTÕES a partir de perfis bons; o resto, cidades/hashtags."""
+    """Plano da sessão com equilíbrio: seguir a linha aprovada x explorar caminhos novos."""
+    import random
     con = db.conectar()
-    print("PLANO DA SESSÃO: pelo menos 2/3 dos perfis vêm de SUGESTÕES a partir das sementes abaixo")
-    print("(botão de perfis semelhantes ao lado de 'Enviar mensagem'). O resto, de cidades/hashtags.\n")
-    print("== 1. Sementes (perfis bons) para seguir as sugestões ==")
-    for r, uso in _sementes(con, a.n):
-        tag = r["resultado_nivel"] or r["referencia"] or r["status"]
-        visto = f"já usada {uso['vezes_explorada']}x" if uso else "nunca usada"
-        print(f"sugestoes   @{r['username']:<26} [{tag}] score={r['score']} {r['cidade'] or ''} ({visto})")
-    rend = {(r["origem"], r["detalhe"]): r for r in aprendizado.desempenho_fontes(con)}
-    outras = []
-    for f in con.execute("SELECT * FROM fontes WHERE ativa=1 AND tipo IN ('pagina_local','local','hashtag','busca','explorar')"):
-        r = rend.get((f["tipo"], f["valor"]))
-        bons = (r["bons"] or 0) if r else 0
-        nota = 0.6 * min(bons / max(f["perfis_vistos"], 1) * 5, 1) + 0.4 / (1 + f["vezes_explorada"])
-        outras.append((nota, f, bons))
-    print("\n== 2. Complemento (no máximo 1/3): lojas locais (aba Marcados), cidades, hashtags, buscas ==")
-    for nota, f, bons in sorted(outras, key=lambda x: -x[0])[: max(4, a.n // 2)]:
-        print(f"{f['tipo']:<11} {f['valor']:<28} exploradas={f['vezes_explorada']} vistos={f['perfis_vistos']} bons={bons}")
+    n = a.perfis
+    q_linha, q_pot = round(n * 0.5), round(n * 0.2)
+    q_exp = max(n - q_linha - q_pot, 1)
+    print(f"PLANO PARA {n} PERFIS — equilíbrio entre seguir o que deu certo e descobrir estilos novos:")
+    print(f"  A. ~{q_linha} pela LINHA APROVADA (sugestões de fechadas/aprovadas/referências)")
+    print(f"  B. ~{q_pot} por POTENCIAL ainda não validado (sugestões de achados novos com nota boa)")
+    print(f"  C. ~{q_exp} por EXPLORAÇÃO (cidades do interior, lojas/Marcados, hashtags) — aceite")
+    print("     estilos diferentes das aprovadas se tiver público real; marque 'exploração' nas observações.\n")
+
+    sementes = _sementes(con, 500)
+    validadas = [(r, u) for r, u in sementes if r["referencia"] or r["status"] != "novo"]
+    potencial = [(r, u) for r, u in sementes if not r["referencia"] and r["status"] == "novo"]
+
+    def mostra(lista, k):
+        for r, uso in lista[:k]:
+            tag = r["resultado_nivel"] or r["referencia"] or r["status"]
+            visto = f"usada {uso['vezes_explorada']}x" if uso else "nunca usada"
+            print(f"  sugestoes  @{r['username']:<26} [{tag}] nota={r['score']} {r['cidade'] or ''} ({visto})")
+        if not lista:
+            print("  (nenhuma ainda)")
+
+    print("== A. Linha aprovada: abra a semente e siga os perfis semelhantes ==")
+    mostra(validadas, 5)
+    print("\n== B. Potencial: achados novos com nota boa, ainda não avaliados por você ==")
+    mostra(potencial, 3)
+
+    print("\n== C. Exploração (sorteado para variar a cada sessão) ==")
+    fontes = con.execute("SELECT * FROM fontes WHERE ativa=1").fetchall()
+    def menos_exploradas(tipo, k):
+        grupo = [f for f in fontes if f["tipo"] == tipo]
+        if not grupo:
+            return []
+        menor = min(f["vezes_explorada"] for f in grupo)
+        candidatas = [f for f in grupo if f["vezes_explorada"] <= menor + 1]
+        return random.sample(candidatas, min(k, len(candidatas)))
+    cidades = menos_exploradas("local", 2)
+    for f in cidades:
+        print(f"  local      {f['valor']:<28} (explorada {f['vezes_explorada']}x) — perfis com localização e lojas da cidade")
+    lojas = menos_exploradas("pagina_local", 1)
+    for f in lojas:
+        print(f"  pagina_local @{f['valor']:<26} (explorada {f['vezes_explorada']}x) — aba Marcados")
+    if cidades:
+        print(f"  pagina_local (nova)  procure 'boutique {cidades[0]['valor']}' ou 'loja feminina {cidades[0]['valor']}' → aba Marcados")
+    for f in menos_exploradas("hashtag", 1) + menos_exploradas("busca", 1):
+        print(f"  {f['tipo']:<10} {f['valor']:<28} (explorada {f['vezes_explorada']}x)")
 
 
 def cmd_exemplos(a):
@@ -360,7 +389,9 @@ def main():
     s = sub.add_parser("contatados"); s.add_argument("usernames", nargs="*")
     s.add_argument("--arquivo", help="arquivo .txt com os @ (um por linha ou separados por espaço)")
     s.set_defaults(f=cmd_contatados)
-    s = sub.add_parser("proximas-fontes"); s.add_argument("-n", type=int, default=15); s.set_defaults(f=cmd_proximas_fontes)
+    s = sub.add_parser("proximas-fontes"); s.add_argument("perfis", type=int, nargs="?", default=20,
+                                                         help="quantos perfis a sessão vai buscar")
+    s.add_argument("-n", type=int, help=argparse.SUPPRESS); s.set_defaults(f=cmd_proximas_fontes)
     s = sub.add_parser("hoje"); s.set_defaults(f=cmd_hoje)
     s = sub.add_parser("liberar"); s.add_argument("username"); s.set_defaults(f=cmd_liberar)
     s = sub.add_parser("alerta"); s.add_argument("texto"); s.set_defaults(f=cmd_alerta)

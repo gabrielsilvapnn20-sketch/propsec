@@ -35,7 +35,9 @@ mais forte do aprendizado. Perfis "não tão bons" no papel já deram resultado 
   da cidade"), cidades e hashtags. Lojas sem público feminino (móveis, mercado) não servem.
 - O usuário chama perfis por fora; quando ele mandar uma lista, registre com
   `python propsec.py contatados @a @b ...` (ou `--arquivo lista.txt`).
-- Perfis que o usuário **aprova** na fila viram sementes e ensinam o sistema.
+- Perfis que o usuário **aprova** na fila viram sementes e ensinam o sistema — mas **não
+  afunilar**: cada sessão é ~50% linha aprovada, ~20% potencial novo, ~30% exploração
+  (cidades do interior, lojas/Marcados, hashtags, estilos diferentes com público real).
 
 ## Regras do agente
 - No Instagram **só leitura**: nunca enviar mensagem, seguir, curtir, comentar, reagir.
