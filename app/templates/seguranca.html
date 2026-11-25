@@ -1,0 +1,56 @@
+{% extends "base.html" %}{% block t %}Segurança{% endblock %}{% block c %}
+<meta http-equiv="refresh" content="20">
+<h1>Segurança da conta</h1>
+<p class="mut">O agente pede permissão aqui antes de abrir <b>cada</b> perfil. Se você apertar PARAR, ele para no próximo perfil. Esta página atualiza sozinha a cada 20 s.</p>
+
+<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-width:2px;border-color:{{ 'var(--ok)' if pode else 'var(--bad)' }}">
+ <div>
+  <div style="font-size:20px;font-weight:650;color:{{ 'var(--ok)' if pode else 'var(--bad)' }}">{{ '● Agente liberado' if pode else '■ Agente bloqueado' }}</div>
+  {% if not pode %}<div>{{motivo}}</div>{% endif %}
+  <div class="small mut">Último perfil aberto: {{ c.ultima.replace('T',' ') if c.ultima else '—' }}</div>
+ </div>
+ {% if st.pausado %}
+ <form method="post" action="/seguranca/retomar"><button class="ok" style="font-size:16px;padding:12px 24px">▶ Liberar agente</button></form>
+ {% else %}
+ <form method="post" action="/seguranca/parar"><button style="font-size:18px;padding:14px 32px;background:var(--bad);border-color:var(--bad);color:#fff">■ PARAR AGENTE</button></form>
+ {% endif %}
+</div>
+
+<div class="grid k" style="margin-top:12px">
+ <div class="card kpi"><div class="v">{{c.sessao}}/{{cfg.perfis_por_sessao}}</div><div class="l">perfis nesta sessão</div></div>
+ <div class="card kpi"><div class="v">{{c.hora}}/{{cfg.perfis_por_hora}}</div><div class="l">última hora</div></div>
+ <div class="card kpi"><div class="v">{{c.dia}}/{{cfg.perfis_por_dia}}</div><div class="l">hoje</div></div>
+ <div class="card kpi"><div class="v" style="color:{{ 'var(--bad)' if risco >= 80 else ('var(--warn)' if risco >= 50 else 'var(--ok)') }}">{{risco}}%</div><div class="l">uso dos limites</div>
+  <div class="bar" style="margin-top:6px"><i style="width:{{ [risco,100]|min }}%;background:{{ 'var(--bad)' if risco >= 80 else ('var(--warn)' if risco >= 50 else 'var(--ok)') }}"></i></div></div>
+</div>
+
+<div class="grid two">
+<form class="card" method="post" action="/seguranca/config"><h2 style="margin-top:0">Ritmo e limites</h2>
+ <div class="row" style="margin-bottom:12px">
+  <span class="small mut">Atalhos:</span>
+  {% for n, l in [('cautela','Cautela (conta nova)'),('normal','Normal'),('acelerado','Acelerado')] %}
+  <button formaction="/seguranca/perfil/{{n}}">{{l}}</button>{% endfor %}
+ </div>
+ <div class="fields">
+  <div><label>Espera mínima entre perfis (s)</label><input name="intervalo_min" value="{{cfg.intervalo_min}}"></div>
+  <div><label>Espera máxima entre perfis (s)</label><input name="intervalo_max" value="{{cfg.intervalo_max}}"></div>
+  <div><label>Pausa longa a cada N perfis</label><input name="pausa_longa_a_cada" value="{{cfg.pausa_longa_a_cada}}"></div>
+  <div><label>Pausa longa mín. (s)</label><input name="pausa_longa_min" value="{{cfg.pausa_longa_min}}"></div>
+  <div><label>Pausa longa máx. (s, até 480)</label><input name="pausa_longa_max" value="{{cfg.pausa_longa_max}}"></div>
+  <div><label>Perfis por sessão</label><input name="perfis_por_sessao" value="{{cfg.perfis_por_sessao}}"></div>
+  <div><label>Perfis por hora</label><input name="perfis_por_hora" value="{{cfg.perfis_por_hora}}"></div>
+  <div><label>Perfis por dia</label><input name="perfis_por_dia" value="{{cfg.perfis_por_dia}}"></div>
+  <div><label>Horário: início</label><input name="horario_inicio" value="{{cfg.horario_inicio}}"></div>
+  <div><label>Horário: fim</label><input name="horario_fim" value="{{cfg.horario_fim}}"></div>
+  <div><label>Pausa automática após alerta (h)</label><input name="horas_pausa_apos_alerta" value="{{cfg.horas_pausa_apos_alerta}}"></div>
+ </div>
+ <div style="margin-top:10px"><button class="p">Salvar</button></div>
+ <p class="small mut">Conta nova: use <b>Cautela</b> na 1ª semana, depois suba aos poucos. Se o agente avisar de bloqueio, captcha ou "tente mais tarde", ele se pausa sozinho pelo tempo acima.</p>
+</form>
+<div>
+ <h2 style="margin-top:0">Alertas e pausas</h2>
+ <table>{% for a in alertas %}<tr><td class="small mut">{{a.em.replace('T',' ')}}</td><td class="small"><b>{{a.tipo}}</b> {{a.texto}}</td></tr>{% else %}<tr><td class="mut">Nenhum alerta.</td></tr>{% endfor %}</table>
+ <h2>Últimos perfis abertos</h2>
+ <table>{% for v in visitas %}<tr><td class="small mut">{{v.em.replace('T',' ')}}</td><td class="small"><a href="https://instagram.com/{{v.username}}" target="_blank">@{{v.username}}</a></td></tr>{% else %}<tr><td class="mut">Nenhum ainda.</td></tr>{% endfor %}</table>
+</div></div>
+{% endblock %}

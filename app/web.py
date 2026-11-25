@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Stre
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import aprendizado, db, scoring
+from . import aprendizado, db, scoring, seguranca
 
 AQUI = Path(__file__).resolve().parent
 app = FastAPI(title="PropSec")
@@ -146,8 +146,7 @@ def pag_aprendizado(request: Request):
                   fontes=aprendizado.desempenho_fontes(con),
                   por_origem=aprendizado.taxas_por(con, "origem"),
                   por_cidade=aprendizado.taxas_por(con, "cidade"),
-                  historico=list(reversed(db.get_config(con, "historico_pesos", []))),
-                  limite=db.get_config(con, "limite_diario", 120))
+                  historico=list(reversed(db.get_config(con, "historico_pesos", []))))
 
 
 # ---------------------------------------------------------------- ações
@@ -228,8 +227,6 @@ async def acao_config(request: Request):
         if form.get(f"peso_{k}"):
             pesos[k] = float(str(form[f"peso_{k}"]).replace(",", "."))
     db.set_config(con, "pesos", pesos)
-    if form.get("limite_diario"):
-        db.set_config(con, "limite_diario", int(form["limite_diario"]))
     scoring.rescore_todos(con)
     return RedirectResponse("/aprendizado", status_code=303)
 
@@ -240,6 +237,67 @@ def acao_restaurar():
     db.set_config(con, "pesos", dict(scoring.PESOS_PADRAO))
     scoring.rescore_todos(con)
     return RedirectResponse("/aprendizado", status_code=303)
+
+
+# ---------------------------------------------------------------- segurança
+@app.get("/seguranca", response_class=HTMLResponse)
+def pag_seguranca(request: Request):
+    con = seguranca.conectar()
+    pode, motivo, _ = seguranca.verificar(con)
+    visitas = con.execute("SELECT * FROM visitas ORDER BY id DESC LIMIT 40").fetchall()
+    alertas = con.execute("SELECT * FROM alertas ORDER BY id DESC LIMIT 20").fetchall()
+    return render(request, "seguranca.html", cfg=seguranca.config(con), st=seguranca.estado(con),
+                  c=seguranca.contagens(con), risco=seguranca.risco(con), pode=pode, motivo=motivo,
+                  visitas=visitas, alertas=alertas)
+
+
+@app.post("/seguranca/parar")
+def seg_parar():
+    seguranca.pausar(seguranca.conectar(), "parado pelo botão do painel")
+    return RedirectResponse("/seguranca", status_code=303)
+
+
+@app.post("/seguranca/retomar")
+def seg_retomar():
+    seguranca.retomar(seguranca.conectar())
+    return RedirectResponse("/seguranca", status_code=303)
+
+
+@app.post("/seguranca/config")
+async def seg_config(request: Request):
+    con = seguranca.conectar()
+    form = await request.form()
+    cfg = db.get_config(con, "seguranca", {}) or {}
+    for k, v in seguranca.PADRAO.items():
+        val = str(form.get(k, "")).strip()
+        if not val:
+            continue
+        cfg[k] = val if isinstance(v, str) else int(float(val.replace(",", ".")))
+    if cfg.get("intervalo_max", 0) < cfg.get("intervalo_min", 0):
+        cfg["intervalo_max"] = cfg["intervalo_min"]
+    if cfg.get("pausa_longa_max", 0) < cfg.get("pausa_longa_min", 0):
+        cfg["pausa_longa_max"] = cfg["pausa_longa_min"]
+    db.set_config(con, "seguranca", cfg)
+    return RedirectResponse("/seguranca", status_code=303)
+
+
+@app.post("/seguranca/perfil/{nome}")
+def seg_perfil(nome: str):
+    perfis = {
+        "cautela": {"intervalo_min": 45, "intervalo_max": 120, "perfis_por_sessao": 15, "perfis_por_hora": 15,
+                    "perfis_por_dia": 30, "pausa_longa_a_cada": 6, "pausa_longa_min": 300, "pausa_longa_max": 480},
+        "normal": {k: seguranca.PADRAO[k] for k in ("intervalo_min", "intervalo_max", "perfis_por_sessao",
+                   "perfis_por_hora", "perfis_por_dia", "pausa_longa_a_cada", "pausa_longa_min", "pausa_longa_max")},
+        "acelerado": {"intervalo_min": 20, "intervalo_max": 60, "perfis_por_sessao": 40, "perfis_por_hora": 40,
+                      "perfis_por_dia": 120, "pausa_longa_a_cada": 10, "pausa_longa_min": 180, "pausa_longa_max": 360},
+    }
+    if nome not in perfis:
+        raise HTTPException(404)
+    con = seguranca.conectar()
+    cfg = db.get_config(con, "seguranca", {}) or {}
+    cfg.update(perfis[nome])
+    db.set_config(con, "seguranca", cfg)
+    return RedirectResponse("/seguranca", status_code=303)
 
 
 # ---------------------------------------------------------------- API / exportação

@@ -7,8 +7,41 @@ description: Rodar uma sessão de prospecção de influenciadoras no Instagram p
 
 Você navega no Instagram com a conta de prospecção (já logada no Chrome) e salva perfis no
 PropSec. **Você só lê.** Nunca envia mensagem, segue, curte, comenta, responde story ou
-clica em "seguir". Se algo pedir login, verificação, captcha ou mostrar "tente novamente mais
-tarde" / "ação bloqueada": **pare na hora**, encerre a sessão e avise o usuário.
+clica em "seguir".
+
+## Regras de segurança (obrigatórias)
+
+1. **Antes de abrir CADA perfil**, rode o porteiro, sempre com timeout de 10 minutos
+   (parâmetro `timeout: 600000` na ferramenta Bash), porque ele pode esperar alguns minutos:
+   ```bash
+   python propsec.py liberar @perfil
+   ```
+   - `LIBERADO ...` → pode abrir o perfil (o porteiro já esperou o intervalo seguro).
+   - `PARAR: ...` → **encerre a sessão na hora** (passo 5) e conte ao usuário o motivo.
+     Não tente contornar, não espere por conta própria, não abra "só mais um".
+2. Se o Instagram mostrar **qualquer** sinal de alerta — pedido de login ou verificação,
+   captcha, "tente novamente mais tarde", "ação bloqueada", "atividade incomum", página que
+   não carrega repetidamente, deslogou sozinho — rode imediatamente:
+   ```bash
+   python propsec.py alerta "o que apareceu na tela"
+   ```
+   Isso pausa o agente por 24 h. Encerre a sessão e avise o usuário.
+3. Os limites (por sessão, hora, dia, horário) e o botão PARAR ficam em
+   http://localhost:8000/seguranca. Quem decide é o usuário; você só obedece o porteiro.
+   Se o usuário pedir N perfis, pare em N mesmo que o porteiro ainda libere.
+
+## Navegar como uma pessoa
+
+O Instagram percebe robô pelo **padrão**, não pela aparência. Por isso:
+- **Chegue nos perfis clicando**, como uma pessoa: pela busca, pela lista "seguindo" da
+  agência, pelos comentários, pelos perfis marcados. **Evite digitar o endereço
+  `instagram.com/usuario` direto** em sequência. Use link direto só de vez em quando.
+- **Role a página aos poucos** (várias roladas curtas, não pular para o fim). Olhe o grid,
+  abra a aba Reels, role de novo. Abra 2–4 posts, leia, feche.
+- Às vezes (1 a cada 5–8 perfis) faça algo "à toa": volte para a lista, role o feed ou o
+  Explorar por alguns segundos, abra um destaque e saia.
+- Não siga sempre a mesma ordem de passos em todos os perfis.
+- Um perfil por vez, uma aba só. Não abra várias abas em paralelo.
 
 Antes de usar o navegador, carregue a skill `anthropic-skills:chrome-browser`.
 Trabalhe numa aba nova; não mexa nas abas do usuário.
@@ -20,8 +53,10 @@ python propsec.py sessao inicio
 python propsec.py proximas-fontes
 ```
 
-`sessao inicio` mostra quantos perfis já foram visitados hoje e o limite diário (padrão 120).
-Não ultrapasse o limite. Se o usuário pediu uma quantidade ou uma fonte específica, siga o pedido.
+Se o usuário pediu uma quantidade ou uma fonte específica, siga o pedido.
+
+`sessao inicio` também diz se o porteiro está liberado. Se aparecer BLOQUEADO, não comece:
+diga o motivo ao usuário.
 
 Escolha 2 a 4 fontes da lista. Prefira misturar: 1 "similar" de um perfil que deu certo
 (costuma render mais), 1 com bom rendimento e 1 nunca explorada.
@@ -60,11 +95,11 @@ reels com legenda pedindo para assistir/compartilhar, recebidos de lojas locais.
 
 ## 3. Para cada candidata
 
-1. Junte os @ que achou e verifique em lote quais são novos:
+1. Junte os @ que achou (pela lista, sem abrir os perfis ainda) e verifique em lote quais são novos:
    ```bash
    python propsec.py existe @a @b @c
    ```
-   Pule os `JA_EXISTE`.
+   Pule os `JA_EXISTE`. Para cada `NOVO`, **rode `liberar` antes de abrir** (regra 1).
 2. **Triagem rápida** (no topo do perfil). Descarte e registre como `ignorado` se:
    - menos de 1.000 seguidores;
    - mais de 20.000 **e** sem cara das referências (3 fechadas com 47k–139k deram resultado,
@@ -116,11 +151,11 @@ reels com legenda pedindo para assistir/compartilhar, recebidos de lojas locais.
    — é assim que o sistema aprende quais fontes rendem. Campo que você não conseguiu ver:
    **omita** (não invente, não coloque 0).
 
-## 4. Ritmo (protege a conta)
+## 4. Ritmo
 
-- Espere de 15 a 40 segundos entre perfis, variando. A cada ~25 perfis, pausa de 3–5 min.
-- Não abra dezenas de abas; um perfil por vez.
-- Respeite o limite diário mostrado por `sessao inicio`.
+O ritmo é controlado pelo porteiro (`liberar`): ele sorteia a espera entre perfis e faz
+pausas longas periódicas. Não acelere entre as chamadas: gaste o tempo de cada perfil
+olhando com calma (rolar, abrir posts e reels).
 
 ## 5. Encerrar
 

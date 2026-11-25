@@ -24,8 +24,10 @@ mais forte do aprendizado. Perfis "não tão bons" no papel já deram resultado 
 ## Regras do agente
 - No Instagram **só leitura**: nunca enviar mensagem, seguir, curtir, comentar, reagir.
   As mensagens são enviadas pela equipe, fora do agente.
-- Conta exclusiva de prospecção. Ritmo humano e limite diário (ver skill `prospectar`).
-  Qualquer bloqueio/captcha/aviso → parar e avisar.
+- Conta exclusiva de prospecção. **Antes de abrir cada perfil: `python propsec.py liberar @x`**
+  (timeout 10 min). `PARAR` → encerrar a sessão. Navegar clicando e rolando, como pessoa.
+- Qualquer bloqueio/captcha/aviso do Instagram → `python propsec.py alerta "..."`, parar e avisar.
+- Limites e botão PARAR: http://localhost:8000/seguranca (o usuário controla).
 - Não inventar números. Campo não visto = omitir.
 - Guardar só dados públicos e profissionais do perfil.
 

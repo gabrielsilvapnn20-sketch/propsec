@@ -25,7 +25,7 @@ from datetime import date
 
 sys.stdout.reconfigure(encoding="utf-8")  # Windows
 
-from app import aprendizado, db, scoring  # noqa: E402
+from app import aprendizado, db, scoring, seguranca  # noqa: E402
 
 CIDADES_MA = [
     "São Luís", "Imperatriz", "São José de Ribamar", "Timon", "Caxias", "Codó",
@@ -160,18 +160,46 @@ def cmd_proximas_fontes(a):
 
 
 def cmd_hoje(a):
-    con = db.conectar()
+    con = seguranca.conectar()
     hoje = date.today().isoformat()
     salvos = con.execute("SELECT COUNT(*) FROM perfis WHERE criado_em LIKE ?", (hoje + "%",)).fetchone()[0]
-    visitados = con.execute(
-        "SELECT COALESCE(SUM(perfis_visitados),0) FROM sessoes WHERE inicio LIKE ?", (hoje + "%",)
-    ).fetchone()[0]
-    limite = db.get_config(con, "limite_diario", 120)
-    print(f"hoje: {salvos} perfis cadastrados, {visitados} visitados (limite diário: {limite})")
+    c, cfg = seguranca.contagens(con), seguranca.config(con)
+    print(f"hoje: {c['dia']}/{cfg['perfis_por_dia']} perfis visitados, {salvos} cadastrados | "
+          f"última hora: {c['hora']}/{cfg['perfis_por_hora']} | sessão: {c['sessao']}/{cfg['perfis_por_sessao']}")
+    pode, motivo, _ = seguranca.verificar(con)
+    print("SITUAÇÃO: pode prospectar" if pode else f"SITUAÇÃO: BLOQUEADO — {motivo}")
+
+
+def cmd_liberar(a):
+    """Porteiro: chamar ANTES de abrir cada perfil. Espera o intervalo seguro ou manda parar."""
+    con = seguranca.conectar()
+    ok, msg = seguranca.liberar(con, a.username)
+    print(msg if ok else f"PARAR: {msg}")
+    if not ok:
+        sys.exit(2)
+
+
+def cmd_alerta(a):
+    con = seguranca.conectar()
+    cfg = seguranca.config(con)
+    seguranca.pausar(con, a.texto, horas=cfg["horas_pausa_apos_alerta"], tipo="alerta")
+    print(f"AGENTE PAUSADO por {cfg['horas_pausa_apos_alerta']}h: {a.texto}")
+
+
+def cmd_parar(a):
+    con = seguranca.conectar()
+    seguranca.pausar(con, a.motivo or "parado pelo usuário")
+    print("agente pausado")
+
+
+def cmd_retomar(a):
+    con = seguranca.conectar()
+    seguranca.retomar(con)
+    print("agente liberado")
 
 
 def cmd_sessao(a):
-    con = db.conectar()
+    con = seguranca.conectar()
     if a.acao == "inicio":
         cur = con.execute("INSERT INTO sessoes(inicio) VALUES(?)", (db.agora(),))
         con.commit()
@@ -241,6 +269,10 @@ def main():
     s = sub.add_parser("semear"); s.set_defaults(f=cmd_semear)
     s = sub.add_parser("proximas-fontes"); s.add_argument("-n", type=int, default=15); s.set_defaults(f=cmd_proximas_fontes)
     s = sub.add_parser("hoje"); s.set_defaults(f=cmd_hoje)
+    s = sub.add_parser("liberar"); s.add_argument("username"); s.set_defaults(f=cmd_liberar)
+    s = sub.add_parser("alerta"); s.add_argument("texto"); s.set_defaults(f=cmd_alerta)
+    s = sub.add_parser("parar"); s.add_argument("motivo", nargs="?"); s.set_defaults(f=cmd_parar)
+    s = sub.add_parser("retomar"); s.set_defaults(f=cmd_retomar)
     s = sub.add_parser("sessao"); s.add_argument("acao", choices=["inicio", "fim"]); s.add_argument("--id", type=int)
     s.add_argument("--visitados", type=int, default=0); s.add_argument("--salvos", type=int, default=0); s.add_argument("--nota")
     s.set_defaults(f=cmd_sessao)

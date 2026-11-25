@@ -17,7 +17,6 @@
 <div><label>Seguidores máx. (normal)</label><input name="faixa_max" value="{{cfg.faixa_max}}"></div>
 <div><label>Máx. casos especiais</label><input name="faixa_especial_max" value="{{cfg.faixa_especial_max}}"></div>
 <div><label>UFs prioritárias</label><input name="ufs_prioritarias" value="{{cfg.ufs_prioritarias|join(', ')}}"></div>
-<div><label>Limite diário de visitas do agente</label><input name="limite_diario" value="{{limite}}"></div>
 </div>
 <h2>Pesos manuais</h2><div class="fields">{% for k, v in pesos.items() %}<div><label>{{NOMES[k]}}</label><input name="peso_{{k}}" value="{{'%.2f'|format(v)}}"></div>{% endfor %}</div>
 <div style="margin-top:10px"><button class="p">Salvar e recalcular notas</button></div></form>

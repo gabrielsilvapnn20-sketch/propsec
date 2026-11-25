@@ -34,6 +34,8 @@ ou `aprovado` se ainda não foi contatada).
 
 ## 2. Completar os dados no Instagram
 
+Siga as **Regras de segurança** e **Navegar como uma pessoa** da skill `prospectar`
+(inclusive `python propsec.py liberar @perfil` antes de abrir cada uma).
 Para cada referência, siga o passo **3. Coleta completa** da skill `prospectar`
 (mesmos campos, mesmo ritmo, só leitura) e salve com `origem: "referencia"`.
 Ao final:
