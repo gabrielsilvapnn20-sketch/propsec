@@ -21,6 +21,12 @@ tamillymacedo_, samara_reggina_, lay_ruivinha288); `medio` = R$ 200–500/dia (a
 Registrar sempre o lucro (`--lucro`) ou o nível (`--resultado`) das novas parcerias: é o rótulo
 mais forte do aprendizado. Perfis "não tão bons" no papel já deram resultado alto.
 
+## Já contatados e horizonte
+O usuário chama perfis por fora; quando ele mandar uma lista, registre com
+`python propsec.py contatados @a @b ...` (ou `--arquivo lista.txt`). A rede das referências
+(agências, "seguido por") já foi muito trabalhada: no máximo 1/3 de cada sessão vem dela;
+o resto é horizonte novo (achados fora da rede, páginas locais, cidades novas).
+
 ## Regras do agente
 - No Instagram **só leitura**: nunca enviar mensagem, seguir, curtir, comentar, reagir.
   As mensagens são enviadas pela equipe, fora do agente.

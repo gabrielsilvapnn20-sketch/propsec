@@ -58,12 +58,33 @@ Se o usuário pediu uma quantidade ou uma fonte específica, siga o pedido.
 `sessao inicio` também diz se o porteiro está liberado. Se aparecer BLOQUEADO, não comece:
 diga o motivo ao usuário.
 
-Escolha 2 a 4 fontes da lista. Prefira misturar: 1 "similar" de um perfil que deu certo
-(costuma render mais), 1 com bom rendimento e 1 nunca explorada.
+`proximas-fontes` devolve um plano em 3 blocos. **Regra de diversidade:** no máximo **1/3**
+dos perfis da sessão pode vir do bloco 3 (rede conhecida: agências e perfis próximos das
+referências). O usuário já chamou quase todo mundo dessa rede. Pelo menos 2/3 vêm dos
+blocos 1 e 2 (horizonte novo).
+
+Se você abrir uma lista e a maioria for `JA_EXISTE` (já no sistema ou já contatado), essa
+fonte está esgotada: registre-a com `--nota "esgotada"` e troque de fonte.
+
+## Abrir horizontes (o mais importante)
+
+O objetivo é achar o tipo de perfil das referências **fora da rede que o usuário já conhece**:
+- **Bola de neve a partir de achados novos** (bloco 1): abra um perfil bom que você achou
+  fora da rede, veja as **sugestões** dele (seta ao lado de Seguir), quem comenta e quem ele
+  marca. Registre com `fonte achado "<@>"`.
+- **Páginas locais**: páginas de notícias/fofoca/"acontece" de cidades pequenas, lojas de
+  roupa, salões, açaí, eventos e forrós da cidade. As blogueiras locais comentam, são
+  marcadas e fazem publi para elas. Ache pela busca ("notícias Codó", "boutique Imperatriz")
+  e registre a página: `fonte pagina_local "<@>" --nota "cidade"`.
+- **Locais** e **hashtags** de cidades: priorize cidades ainda não exploradas (interior do
+  MA, PI, PA, CE...).
+- **Reels**: quando um reel de uma desconhecida da região tiver muitos comentários de gente
+  real, abra a autora.
+- Varie a cidade/região entre sessões para não ficar só num círculo.
 
 ## 2. Onde procurar, por tipo de fonte
 
-- **agencia @x** (prioridade máxima): agências/hubs de influenciadoras como `fly.creators.br`
+- **agencia @x** (rede conhecida, usar pouco): agências/hubs de influenciadoras como `fly.creators.br`
   e `hub.influ.br` seguem várias das parcerias que deram resultado. Abra a lista
   **"seguindo"** da agência e avalie cada mulher dali. Quando achar outra agência/hub
   parecida (aparece no "Seguido(a) por" de várias boas), registre-a:

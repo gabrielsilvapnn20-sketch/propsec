@@ -46,7 +46,10 @@ HASHTAGS = [
 AGENCIAS = ["fly.creators.br", "hub.influ.br"]
 REFERENCIAS_INICIAIS = "referencias/referencias_iniciais.json"
 BUSCAS = ["aceito parcerias", "blogueira maranhão", "digital influencer MA",
-          "mãe solo blogueira", "divulgação loja"]
+          "mãe solo blogueira", "divulgação loja", "parcerias no direct", "blogueira nordeste",
+          "notícias Codó", "acontece Imperatriz", "Caxias MA notícias", "Bacabal news",
+          "loja feminina São Luís", "boutique Imperatriz", "fofoca Timon", "Teresina blogueira",
+          "Fortaleza blogueira", "Belém blogueira", "Parnaíba blogueira"]
 
 
 def _ler_json(caminho):
@@ -129,34 +132,75 @@ def cmd_semear(a):
         print(f"{len(dados.get('perfis', []))} referências iniciais carregadas")
 
 
+REDE_CONHECIDA = ("agencia", "similar")  # fontes ligadas às referências/rede que vocês já trabalham
+
+
 def cmd_proximas_fontes(a):
-    """Mistura: fontes que mais renderam (explorar mais fundo) + fontes pouco exploradas."""
+    """Plano de fontes da sessão: no máximo 1/3 da rede conhecida, o resto horizonte novo."""
     con = db.conectar()
     rend = {(r["origem"], r["detalhe"]): r for r in aprendizado.desempenho_fontes(con)}
     fontes = con.execute("SELECT * FROM fontes WHERE ativa=1").fetchall()
-    ranqueadas = []
+    conhecida, nova = [], []
     for f in fontes:
         r = rend.get((f["tipo"], f["valor"]))
         bons = (r["bons"] or 0) if r else 0
         fechados = (r["fechados"] or 0) if r else 0
         vistos = max(f["perfis_vistos"], 1)
-        rendimento = (bons + 3 * fechados) / vistos
+        rendimento = min((bons + 3 * fechados) / vistos * 5, 1)
         novidade = 1.0 / (1 + f["vezes_explorada"])
-        bonus = 0.5 if f["tipo"] == "agencia" else (0.3 if f["tipo"] == "similar" else 0)
-        ranqueadas.append((0.6 * min(rendimento * 5, 1) + 0.4 * novidade + bonus, f, bons, fechados))
-    # Similares das melhores (fechadas/referências) sempre entram como sugestão
-    refs = con.execute(
-        "SELECT username FROM perfis WHERE referencia IS NOT NULL OR status='fechado' "
-        "ORDER BY COALESCE(story_views_real,0) DESC, score DESC LIMIT 20").fetchall()
-    ja = {f["valor"] for f in fontes if f["tipo"] == "similar"}
-    print("== Similares de perfis que deram certo (sugeridos/seguidos/comentaristas) ==")
-    for r in refs:
-        if r["username"] not in ja:
-            print(f"similar  @{r['username']}  (nunca explorado)")
-    print("\n== Fontes ranqueadas (rendimento + novidade) ==")
-    for nota, f, bons, fechados in sorted(ranqueadas, key=lambda x: -x[0])[: a.n]:
-        print(f"{f['tipo']:<8} {f['valor']:<28} exploradas={f['vezes_explorada']} "
-              f"vistos={f['perfis_vistos']} bons={bons} fechados={fechados}")
+        item = (0.6 * rendimento + 0.4 * novidade, f, bons, fechados)
+        (conhecida if f["tipo"] in REDE_CONHECIDA else nova).append(item)
+
+    # "Bola de neve" a partir de achados NOVOS (fora da rede das referências)
+    ja = {f["valor"] for f in fontes if f["tipo"] in ("similar", "achado")}
+    achados = con.execute(
+        "SELECT username, score, cidade, uf FROM perfis WHERE referencia IS NULL "
+        "AND COALESCE(origem,'') NOT IN ('referencia','manual','agencia','similar') "
+        "AND status IN ('novo','aprovado','contatado','respondeu','negociando','fechado') AND score >= 60 "
+        "ORDER BY score DESC LIMIT 30").fetchall()
+    achados = [r for r in achados if r["username"] not in ja][:8]
+
+    def linha(item):
+        nota, f, bons, fechados = item
+        return (f"{f['tipo']:<12} {f['valor']:<28} exploradas={f['vezes_explorada']} "
+                f"vistos={f['perfis_vistos']} bons={bons} fechados={fechados}"
+                + (f"  ({f['nota']})" if f["nota"] else ""))
+
+    print("PLANO DA SESSÃO: no máximo 1/3 dos perfis da REDE CONHECIDA; o resto de HORIZONTE NOVO.\n")
+    print("== 1. Horizonte novo: bola de neve a partir de achados fora da rede (sugeridos/comentaristas) ==")
+    for r in achados:
+        print(f"achado       @{r['username']:<27} score={r['score']} {r['cidade'] or ''}")
+    if not achados:
+        print("(nenhum ainda: comece por locais, páginas locais e hashtags)")
+    print("\n== 2. Horizonte novo: locais, páginas locais, hashtags, buscas ==")
+    for item in sorted(nova, key=lambda x: -x[0])[: a.n]:
+        print(linha(item))
+    print("\n== 3. Rede conhecida (agências e próximos das referências) — use pouco ==")
+    for item in sorted(conhecida, key=lambda x: -x[0])[: max(3, a.n // 3)]:
+        print(linha(item))
+
+
+def cmd_contatados(a):
+    """Marca perfis que vocês já chamaram fora do sistema, para o agente não trazer de novo."""
+    con = db.conectar()
+    nomes = list(a.usernames)
+    if a.arquivo:
+        texto = open(a.arquivo, encoding="utf-8").read()
+        nomes += [t for t in texto.replace(",", " ").split() if t.strip()]
+    n_novos = n_atual = 0
+    for u in nomes:
+        u = db.normalizar_username(u)
+        if not u:
+            continue
+        p = db.buscar_perfil(con, u)
+        if p is None:
+            db.salvar_perfil(con, {"username": u, "origem": "manual",
+                                   "observacoes": "já contatado antes de entrar no sistema"}, status="contatado")
+            n_novos += 1
+        elif p["status"] in ("novo", "aprovado", "ignorado", "descartado"):
+            db.mudar_status(con, p["id"], "contatado", nota="já contatado (informado pelo usuário)")
+            n_atual += 1
+    print(f"{n_novos} perfis adicionados como já contatados, {n_atual} atualizados")
 
 
 def cmd_hoje(a):
@@ -263,10 +307,13 @@ def main():
     s.add_argument("--resultado", choices=list(db.NIVEIS_RESULTADO), help="nível do resultado")
     s.add_argument("--qualidade", type=int, choices=range(1, 6)); s.add_argument("--nota")
     s.set_defaults(f=cmd_status)
-    s = sub.add_parser("fonte"); s.add_argument("tipo", choices=["agencia", "hashtag", "local", "similar", "busca", "comentarios", "explorar"])
+    s = sub.add_parser("fonte"); s.add_argument("tipo", choices=["agencia", "similar", "achado", "pagina_local", "hashtag", "local", "busca", "comentarios", "explorar"])
     s.add_argument("valor"); s.add_argument("--vistos", type=int, default=0); s.add_argument("--nota")
     s.set_defaults(f=cmd_fonte)
     s = sub.add_parser("semear"); s.set_defaults(f=cmd_semear)
+    s = sub.add_parser("contatados"); s.add_argument("usernames", nargs="*")
+    s.add_argument("--arquivo", help="arquivo .txt com os @ (um por linha ou separados por espaço)")
+    s.set_defaults(f=cmd_contatados)
     s = sub.add_parser("proximas-fontes"); s.add_argument("-n", type=int, default=15); s.set_defaults(f=cmd_proximas_fontes)
     s = sub.add_parser("hoje"); s.set_defaults(f=cmd_hoje)
     s = sub.add_parser("liberar"); s.add_argument("username"); s.set_defaults(f=cmd_liberar)
