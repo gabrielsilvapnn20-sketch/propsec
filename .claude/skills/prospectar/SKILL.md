@@ -72,8 +72,10 @@ próprio Instagram. `proximas-fontes` lista as **sementes** (fechadas, aprovadas
 4. Analise as novas (passo 3).
 5. **Bola de neve:** quando uma nova for boa (nota ≥ 60), use-a como semente também e abra as
    sugestões dela. Assim você sai da rede conhecida.
-6. Registre cada semente usada: `python propsec.py fonte sugestoes "<@semente>" --vistos N`.
-   Salve os perfis com `"origem": "sugestoes", "origem_detalhe": "<@semente>"`.
+6. Registre cada semente usada: `python propsec.py fonte sugestoes nome_da_semente --vistos N`.
+   Salve os perfis com `"origem": "sugestoes", "origem_detalhe": "nome_da_semente"`.
+7. **Se o usuário indicar por onde começar** ("comece pela @x", "explore Bacabal"), siga o
+   pedido dele em vez do plano.
 
 **Não use agências** (fly.creators.br, hub.influ.br e parecidas) como fonte: quem elas
 seguem já é agenciado. Se um perfil mostrar "Seguido(a) por" uma agência, anote isso nas

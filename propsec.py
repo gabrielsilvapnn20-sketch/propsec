@@ -136,29 +136,48 @@ def cmd_semear(a):
     # versões antigas usavam agências e páginas de loja como fonte; desativa
     con.execute("UPDATE fontes SET ativa=0 WHERE tipo = 'agencia'")
     con.commit()
+    db.corrigir_fontes(con)
 
 
-def _sementes(con, limite=12):
-    """Perfis bons de onde seguir as SUGESTÕES do Instagram (perfis semelhantes)."""
+def _sementes(con):
+    """Perfis bons de onde seguir as SUGESTÕES do Instagram, com a prioridade de cada um.
+
+    O uso de uma semente é medido de dois jeitos (o que for maior): quantas vezes foi registrada
+    como fonte e quantos perfis já foram salvos a partir dela. Quanto mais usada, menos prioridade.
+    """
     usadas = {r["valor"]: r for r in con.execute("SELECT * FROM fontes WHERE tipo='sugestoes'")}
+    achados = {r["d"]: r["n"] for r in con.execute(
+        "SELECT origem_detalhe d, COUNT(*) n FROM perfis WHERE origem='sugestoes' GROUP BY 1")}
     rows = con.execute(
         """SELECT username, status, referencia, resultado_nivel, score, cidade, uf FROM perfis
-           WHERE status IN ('fechado','negociando','respondeu','aprovado')
+           WHERE status IN ('fechado','negociando','respondeu','aprovado','contatado')
               OR referencia IS NOT NULL OR (status='novo' AND score >= 65)""").fetchall()
-
-    def prioridade(r):
-        base = {"fechado": 5, "negociando": 4, "respondeu": 3.5, "aprovado": 3}.get(r["status"], 1)
+    out = []
+    for r in rows:
+        base = {"fechado": 5, "negociando": 4, "respondeu": 3.5, "aprovado": 3, "contatado": 3}.get(r["status"], 1.5)
         if r["resultado_nivel"] == "alto":
-            base += 3
-        if r["referencia"] is None and r["status"] in ("aprovado", "respondeu", "negociando", "fechado"):
-            base += 2  # achado novo aprovado pelo usuário: leva para fora da rede já trabalhada
+            base += 2
+        if r["referencia"] is None and r["status"] != "novo":
+            base += 2  # aprovada por você: abre caminhos fora da rede antiga
         base += (r["score"] or 0) / 100
-        uso = usadas.get(r["username"])
-        if uso:  # já foi semente: perde prioridade a cada uso, para girar entre as sementes
-            base = base / (1 + 0.7 * uso["vezes_explorada"])
-        return base
+        uso_reg = usadas[r["username"]]["vezes_explorada"] if r["username"] in usadas else 0
+        uso = max(uso_reg, achados.get(r["username"], 0) / 6)
+        out.append((base / (1 + 0.8 * uso), r, uso))
+    return out
 
-    return [(r, usadas.get(r["username"])) for r in sorted(rows, key=prioridade, reverse=True)[:limite]]
+
+def _sorteio_ponderado(itens, k, rng):
+    """Escolhe k itens sem repetir; prioridade maior = mais chance (varia a cada sessão)."""
+    itens, escolha = list(itens), []
+    while itens and len(escolha) < k:
+        total = sum(max(p, 0.01) for p, *_ in itens)
+        x, acc = rng.uniform(0, total), 0.0
+        for idx, it in enumerate(itens):
+            acc += max(it[0], 0.01)
+            if acc >= x:
+                escolha.append(itens.pop(idx))
+                break
+    return escolha
 
 
 def cmd_proximas_fontes(a):
@@ -174,22 +193,32 @@ def cmd_proximas_fontes(a):
     print(f"  C. ~{q_exp} por EXPLORAÇÃO (cidades do interior, lojas/Marcados, hashtags) — aceite")
     print("     estilos diferentes das aprovadas se tiver público real; marque 'exploração' nas observações.\n")
 
-    sementes = _sementes(con, 500)
-    validadas = [(r, u) for r, u in sementes if r["referencia"] or r["status"] != "novo"]
-    potencial = [(r, u) for r, u in sementes if not r["referencia"] and r["status"] == "novo"]
+    rng = random.Random()
+    sementes = _sementes(con)
+    aprovadas = [x for x in sementes if not x[1]["referencia"] and x[1]["status"] != "novo"]
+    referencias = [x for x in sementes if x[1]["referencia"]]
+    potencial = [x for x in sementes if not x[1]["referencia"] and x[1]["status"] == "novo"]
+    # Linha aprovada: até 3 que você aprovou + 2 referências antigas (ou completa com o que houver)
+    linha = _sorteio_ponderado(aprovadas, 3, rng)
+    linha += _sorteio_ponderado(referencias, 5 - len(linha), rng)
+    if len(linha) < 5:
+        linha += _sorteio_ponderado([x for x in aprovadas if x not in linha], 5 - len(linha), rng)
 
-    def mostra(lista, k):
-        for r, uso in lista[:k]:
-            tag = r["resultado_nivel"] or r["referencia"] or r["status"]
-            visto = f"usada {uso['vezes_explorada']}x" if uso else "nunca usada"
-            print(f"  sugestoes  @{r['username']:<26} [{tag}] nota={r['score']} {r['cidade'] or ''} ({visto})")
+    def mostra(lista):
+        for prio, r, uso in lista:
+            if r["referencia"]:
+                tag = f"referência{', resultado ' + r['resultado_nivel'] if r['resultado_nivel'] else ''}"
+            else:
+                tag = {"novo": "achado, não avaliado"}.get(r["status"], f"aprovada por você ({r['status']})")
+            usada = f"já rendeu {uso:.0f}x" if uso >= 1 else "pouco usada"
+            print(f"  sugestoes  @{r['username']:<26} [{tag}] {r['cidade'] or ''} ({usada})")
         if not lista:
             print("  (nenhuma ainda)")
 
-    print("== A. Linha aprovada: abra a semente e siga os perfis semelhantes ==")
-    mostra(validadas, 5)
+    print("== A. Linha aprovada (sorteada entre aprovadas e referências; muda a cada sessão) ==")
+    mostra(linha)
     print("\n== B. Potencial: achados novos com nota boa, ainda não avaliados por você ==")
-    mostra(potencial, 3)
+    mostra(_sorteio_ponderado(potencial, 3, rng))
 
     print("\n== C. Exploração (sorteado para variar a cada sessão) ==")
     fontes = con.execute("SELECT * FROM fontes WHERE ativa=1").fetchall()

@@ -56,7 +56,7 @@ tpl.env.globals["NOMES"] = scoring.NOMES
 tpl.env.globals["NIVEIS"] = db.NIVEIS_RESULTADO
 
 
-VERSAO = "2026.11.26-d"
+VERSAO = "2026.11.26-e"
 
 # Próximo passo de cada etapa (botões nas Conversas e no perfil)
 PROXIMOS = {

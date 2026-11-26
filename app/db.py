@@ -185,6 +185,8 @@ def _limpar(dados: dict) -> dict:
         limpo[k] = v
     if limpo.get("uf"):
         limpo["uf"] = limpo["uf"].upper()[:2]
+    if limpo.get("origem_detalhe") and limpo.get("origem") in TIPOS_FONTE_PERFIL:
+        limpo["origem_detalhe"] = normalizar_username(limpo["origem_detalhe"])
     return limpo
 
 
@@ -240,8 +242,37 @@ def mudar_status(con, perfil_id, novo, nota=None):
     con.commit()
 
 
+TIPOS_FONTE_PERFIL = ("sugestoes", "similar", "achado", "pagina_local", "agencia")
+
+
+def normalizar_fonte(tipo, valor):
+    """Fontes que são perfis guardam o @ sem '@' e em minúsculas (igual aos perfis)."""
+    valor = (valor or "").strip()
+    return normalizar_username(valor) if tipo in TIPOS_FONTE_PERFIL else valor
+
+
+def corrigir_fontes(con):
+    """Junta fontes gravadas como '@perfil' e 'perfil' (versões antigas)."""
+    for r in con.execute("SELECT * FROM fontes").fetchall():
+        certo = normalizar_fonte(r["tipo"], r["valor"])
+        if certo == r["valor"]:
+            continue
+        alvo = con.execute("SELECT * FROM fontes WHERE tipo=? AND valor=?", (r["tipo"], certo)).fetchone()
+        if alvo:
+            con.execute("UPDATE fontes SET vezes_explorada=vezes_explorada+?, perfis_vistos=perfis_vistos+?, "
+                        "ultima_vez=MAX(COALESCE(ultima_vez,''), COALESCE(?,'')) WHERE id=?",
+                        (r["vezes_explorada"], r["perfis_vistos"], r["ultima_vez"], alvo["id"]))
+            con.execute("DELETE FROM fontes WHERE id=?", (r["id"],))
+        else:
+            con.execute("UPDATE fontes SET valor=? WHERE id=?", (certo, r["id"]))
+    # o mesmo nos perfis salvos: origem_detalhe '@semente' -> 'semente'
+    con.execute("UPDATE perfis SET origem_detalhe=lower(substr(origem_detalhe, 2)) "
+                "WHERE origem IN ('sugestoes','similar','achado','pagina_local') AND origem_detalhe LIKE '@%'")
+    con.commit()
+
+
 def registrar_fonte(con, tipo, valor, perfis_vistos=0, nota=None):
-    valor = valor.strip()
+    valor = normalizar_fonte(tipo, valor)
     con.execute(
         "INSERT INTO fontes(tipo, valor) VALUES(?, ?) ON CONFLICT(tipo, valor) DO NOTHING",
         (tipo, valor),
