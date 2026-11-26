@@ -38,11 +38,12 @@ CAMPOS_PERFIL = [
     "observacoes", "origem", "origem_detalhe",
     "story_views_real", "story_views_informado_em", "valor_parceria",
     "qualidade_manual", "referencia", "lucro_dia", "resultado_nivel", "estilo_blogueira", "perfil_comercial",
+    "stories_qtd", "stories_publi",
 ]
 
 # Colunas adicionadas depois da primeira versão (migração automática)
 COLUNAS_NOVAS = {"lucro_dia": "REAL", "resultado_nivel": "TEXT", "estilo_blogueira": "REAL",
-                 "perfil_comercial": "REAL"}
+                 "perfil_comercial": "REAL", "stories_qtd": "INTEGER", "stories_publi": "REAL"}
 NIVEIS_RESULTADO = {"alto": "Alto (R$ 1.000+/dia)", "medio": "Médio (R$ 200–500/dia)", "baixo": "Baixo"}
 
 SCHEMA = """
@@ -73,6 +74,8 @@ CREATE TABLE IF NOT EXISTS perfis (
     resultado_nivel TEXT,            -- alto / medio / baixo
     estilo_blogueira REAL,           -- 0 a 1: quanto lembra o estilo das fechadas (avaliação do agente)
     perfil_comercial REAL,           -- 0 a 1: quanto o perfil é vitrine de marcas / dona de negócio
+    stories_qtd INTEGER,             -- quantos stories ela tinha no ar quando o agente viu (24 h)
+    stories_publi REAL,              -- 0 a 1: fração desses stories que era divulgação de loja/marca
     criado_em TEXT NOT NULL, atualizado_em TEXT NOT NULL, verificado_em TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_perfis_status ON perfis(status);

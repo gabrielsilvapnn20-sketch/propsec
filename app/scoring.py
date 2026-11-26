@@ -114,7 +114,10 @@ def componentes(p, cfg) -> dict[str, float | None]:
         if partes:
             c["comentarios"] = sum(partes) / len(partes)
 
-    if p["stories_ativos"] is not None:
+    qtd = _num(p["stories_qtd"])
+    if qtd is not None:  # viu os stories: quantidade no dia vale mais que só "tem anel"
+        c["stories_ativos"] = min(1.0, qtd / 5)
+    elif p["stories_ativos"] is not None:
         c["stories_ativos"] = 1.0 if int(p["stories_ativos"]) else 0.0
 
     ppw = _num(p["posts_por_semana"])
@@ -162,6 +165,14 @@ def calcular(p, pesos, cfg):
         mult *= cfg["penalidade_fora_faixa"]
         motivos.append(f"⚠ fora da faixa ({int(seg):,} seguidores)".replace(",", "."))
     com = _num(p["perfil_comercial"])
+    sp, sq = _num(p["stories_publi"]), _num(p["stories_qtd"])
+    if sp is not None and sq:
+        # stories tomados por divulgação de lojas/marcas é o sinal mais forte de que não fecha;
+        # com poucos stories vistos, o sinal vale proporcionalmente menos
+        sinal = sp * min(1.0, sq / 3)
+        com = max(com or 0.0, sinal)
+        if sp >= 0.5 and sq >= 3:
+            motivos.append(f"⚠ stories cheios de divulgação ({round(sp * 100)}% de {int(sq)})")
     if com is not None and com > 0:
         mult *= 1 - cfg["penalidade_comercial"] * min(com, 1.0)
         if com >= 0.5:

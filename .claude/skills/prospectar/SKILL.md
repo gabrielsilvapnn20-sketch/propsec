@@ -99,6 +99,21 @@ bio, categoria, destaques) → rolar a grade uma ou duas vezes. Se a aba **Reels
 clique, abra e anote a mediana das views que aparecem na grade (opcional). Não abra posts
 um por um, a não ser que esteja em dúvida.
 
+**Stories (importante — só para quem passou na triagem de seguidores e estilo):**
+se a foto de perfil tiver o **anel colorido**, clique nela e assista os stories do dia.
+- Pause (botão de pausa no topo do story) para ler cada um e avance com a seta da direita.
+  Veja no máximo 15; feche com o X.
+- Conte `stories_qtd` (quantos tinha) e quantos eram **divulgação** de loja/marca/serviço
+  (marca @loja, mostra produto com preço, "cupom", "link", "corre lá", provador, recebido,
+  sorteio de loja) → `stories_publi` = divulgação ÷ total.
+- O que **não** é divulgação: rotina, filhos, casa, humor, desabafo, rolê, caixinha de
+  perguntas, foto dela.
+- **Nunca** curta, reaja, responda, use caixinha/enquete ou envie mensagem pelo story.
+  Só assistir.
+- Sem anel: não abra destaques um por um; só leia os títulos dos destaques (ex.: vários
+  destaques "Parceria X", "Loja Y" indicam perfil de divulgação).
+Atenção: a conta de prospecção aparece na lista de quem viu o story — isso é esperado.
+
 **Nota de estilo (`estilo_blogueira`, 0 a 1)** — compare com as fechadas:
 - **1.0** — igual às fechadas: mulher, selfies/looks/rotina, se apresenta como blogueira/
   criadora ou "parcerias no direct", stories/destaques ativos, cara de conhecida na cidade.
@@ -112,14 +127,18 @@ vizinhas, clientes; "seguido por" gente da mesma cidade).
 - **0.4** — perfil pessoal comum, poucos sinais de blogueira.
 - **0–0.2** — não é o estilo: loja, página, homem, empresa, perfil abandonado, famosa grande.
 
-**Perfil comercial (`perfil_comercial`, 0 a 1)** — o usuário raramente fecha com perfis
-que vivem de marcas ou de negócio próprio:
-- **1.0** — dona de loja de roupas, maquiagem, unhas, salão etc. **com muitas clientes**, ou feed
-  tomado por publis/parcerias com várias marcas e lojas (vitrine).
-- **0.5** — faz publi com frequência, ou tem negócio próprio **pequeno** (poucas clientes,
-  começando) — este caso ainda pode fechar.
-- **0–0.2** — perfil pessoal; publi de vez em quando.
-Isso reduz a nota; não é motivo para ignorar sozinho, exceto quando é 1.0 e o estilo não é forte.
+**Perfil comercial (`perfil_comercial`, 0 a 1)** — o usuário raramente fecha com quem
+**vive de divulgar** (stories tomados por lojas de sapato, perfume, roupa da cidade, várias
+marcas) ou é **dona de negócio com muitas clientes** (loja de roupa, maquiagem, unha, salão).
+Escrever "publi"/"parcerias" na bio **não** é problema; o problema é a quantidade de
+divulgação no dia a dia.
+- **1.0** — a maior parte dos stories/feed é divulgação de várias lojas e marcas, ou é dona de
+  negócio com muitas clientes.
+- **0.5** — divulga com frequência, mas ainda posta muita coisa pessoal; ou tem negócio
+  próprio **pequeno** (poucas clientes, começando) — ainda pode fechar.
+- **0–0.2** — perfil pessoal; divulgação de vez em quando.
+Isso reduz a nota (os números de stories também entram na conta sozinhos); não é motivo para
+ignorar, exceto quando é 1.0 e o estilo não é forte.
 
 **Salvar como `novo`** se estilo ≥ 0.6 **e** seguidores entre 1.000 e 30.000 (ideal
 3.500–15.000; de 15.000 a 30.000 só se o estilo for 0.85+). **Acima de 30.000: `ignorado`**
@@ -128,7 +147,8 @@ Caso contrário, salve como `ignorado` com o motivo (para não revisitar). Segui
 (milhares de seguidores, curtidas/views ínfimas, comentários de bot) → `ignorado`.
 
 Colete o que estiver **visível sem esforço**: `seguidores`, `seguindo`, `posts`, `nome`,
-`bio`, `cidade`/`uf`, `estilo_blogueira`, `perfil_comercial`, `stories_ativos` (anel colorido ou destaques
+`bio`, `cidade`/`uf`, `estilo_blogueira`, `perfil_comercial`, `stories_qtd`,
+`stories_publi`, `stories_ativos` (anel colorido ou destaques
 recentes), `faz_publi` (publi/recebidos/lojas marcadas visíveis), `contato`, `link_bio`,
 `publicos` (mãe, maternidade, mulher de preso, moda, beleza, humor, forró, praia,
 lifestyle, interior...), `media_views_reels` se viu, e `observacoes` com 1 frase de por que
@@ -138,6 +158,7 @@ lembra as fechadas. Campo que você não viu: **omita**.
 python propsec.py salvar - <<'JSON'
 {"username": "maria.blog", "nome": "Maria", "cidade": "Codó", "uf": "MA",
  "seguidores": 6200, "seguindo": 900, "posts": 41, "estilo_blogueira": 0.9, "perfil_comercial": 0.2,
+ "stories_qtd": 7, "stories_publi": 0.15,
  "stories_ativos": 1, "faz_publi": 1, "bio": "...", "publicos": ["mãe", "moda"],
  "media_views_reels": 4800,
  "observacoes": "mãe, looks e provador de loja local, parcerias no direct",
