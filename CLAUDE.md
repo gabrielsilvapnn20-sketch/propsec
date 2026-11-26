@@ -4,8 +4,11 @@
 Buscamos influenciadoras **de menor porte** no Instagram para parcerias:
 - **Volume é o que importa**: quase toda "blogueira" compatível é oportunidade. O critério
   principal é o **estilo** (parecer com as fechadas) + faixa de seguidores.
-- Seguidores: ideal **3.500 a 20.000**; vale a partir de ~1.000 e acima de 20k se o estilo for forte
-  (fechadas com 1.451, 47k e 78k deram resultado).
+- Seguidores: ideal **3.500 a 15.000**; vale de ~1.000 a 30.000 (15–30k só com estilo forte).
+  **Acima de 30.000 não trazer**: o usuário não gosta de fechar com perfis grandes.
+- **Perfil comercial derruba a nota**: dona de loja de roupa/maquiagem/unha/salão com muitas
+  clientes, ou feed tomado por publis de marcas e lojas → raramente fecha. Empreendedora com
+  poucas clientes ainda pode fechar (`perfil_comercial` 0.5). Publi de vez em quando não pesa.
 - Views de reels/engajamento são bônus, não requisito. Poucos posts no feed é normal.
 - Blogueira de comunidade/"baixa renda", foto simples de celular: **não** é ponto negativo —
   público fiel, já deu lucro alto. Não premiar "produção bonita".

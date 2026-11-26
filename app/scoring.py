@@ -14,11 +14,11 @@ from . import db
 # Modelo v2 ("volume"): o que mais pesa é o perfil ter o ESTILO das fechadas e estar numa
 # faixa de seguidores boa. Reels/engajamento ajudam, mas não são obrigatórios — o nicho vive
 # de volume e quase toda "blogueira" compatível é oportunidade.
-MODELO_VERSAO = 2
+MODELO_VERSAO = 3
 PESOS_PADRAO = {
     "estilo": 4.0,            # compatível com o estilo das referências (avaliação do agente, 0–1)
-    "faixa": 2.0,             # seguidores: ideal 3.500–20.000, aceita 1.000–50.000+
-    "perfil_blogueira": 1.5,  # categoria blogueira/criadora, "parcerias no direct", publi, contato
+    "faixa": 2.0,             # seguidores: ideal 3.500–15.000; acima de 30.000 não interessa
+    "perfil_blogueira": 1.5,  # se apresenta como blogueira/criadora, aceita parceria, tem contato
     "stories_ativos": 1.0,    # posta stories
     "alcance_reels": 1.0,     # mediana de views dos reels ÷ seguidores (bônus, não obrigatório)
     "engajamento": 0.8,       # (curtidas + comentários) ÷ seguidores
@@ -42,12 +42,13 @@ NOMES = {
 CONFIG_PADRAO = {
     "faixa_min": 1000,            # abaixo disso: fora
     "faixa_ideal_min": 3500,      # de faixa_ideal_min a faixa_max: nota cheia
-    "faixa_max": 20000,
-    "faixa_especial_max": 50000,  # acima de faixa_max até aqui: ainda vale (fechadas com 47k e 78k)
+    "faixa_max": 15000,
+    "faixa_especial_max": 30000,  # de faixa_max até aqui vale menos; acima: o usuário não fecha
     "ufs_prioritarias": ["MA"],
     "valor_desconhecido": 0.5,    # sinal não medido conta como neutro (modo volume)
     "taxa_stories_base": 0.10,    # calibrada pelo aprendizado
-    "penalidade_fora_faixa": 0.3, # só abaixo de faixa_min
+    "penalidade_fora_faixa": 0.3, # abaixo de faixa_min ou acima de faixa_especial_max
+    "penalidade_comercial": 0.5,  # perfil 100% comercial perde metade da nota
 }
 
 
@@ -59,12 +60,14 @@ def _num(v):
 
 
 def carregar(con):
-    if db.get_config(con, "modelo_versao") != MODELO_VERSAO:
-        # modelo mudou: descarta pesos/faixas antigos, mantém o que foi aprendido de stories e UFs
+    versao = db.get_config(con, "modelo_versao")
+    if versao != MODELO_VERSAO:
+        # modelo mudou: faixas voltam ao padrão novo; mantém o aprendido de stories e UFs.
         antigos = db.get_config(con, "parametros") or {}
         manter = {k: antigos[k] for k in ("taxa_stories_base", "ufs_prioritarias") if k in antigos}
-        db.set_config(con, "pesos", dict(PESOS_PADRAO))
         db.set_config(con, "parametros", manter)
+        if not versao or versao < 2:  # pesos do modelo v1 não servem; de v2 em diante são mantidos
+            db.set_config(con, "pesos", dict(PESOS_PADRAO))
         db.set_config(con, "modelo_versao", MODELO_VERSAO)
     pesos = {**PESOS_PADRAO, **(db.get_config(con, "pesos") or {})}
     pesos = {k: v for k, v in pesos.items() if k in PESOS_PADRAO}
@@ -89,10 +92,10 @@ def componentes(p, cfg) -> dict[str, float | None]:
             c["faixa"] = 0.5 + 0.5 * (seg - lo) / max(ideal - lo, 1)
         elif seg <= hi:
             c["faixa"] = 1.0
-        elif seg <= esp:
-            c["faixa"] = 0.7
+        elif seg <= esp:  # cai de 0.7 até 0.3 entre faixa_max e faixa_especial_max
+            c["faixa"] = 0.7 - 0.4 * (seg - hi) / max(esp - hi, 1)
         else:
-            c["faixa"] = 0.5
+            c["faixa"] = 0.0
 
         views = _num(p["media_views_reels"])
         if views is not None:
@@ -122,10 +125,8 @@ def componentes(p, cfg) -> dict[str, float | None]:
     texto = " ".join(str(p[k] or "") for k in ("bio", "tipo_conteudo")).lower()
     if any(t in texto for t in ("blogueir", "criador de conte", "influenc", "parceria", "publi")):
         sinais.append(1.0)
-    if p["faz_publi"] is not None:
-        sinais.append(float(int(p["faz_publi"])))
-    if p["marca_lojas"] is not None:
-        sinais.append(float(int(p["marca_lojas"])))
+    # "faz publi" e "marca lojas" NÃO somam: perfil cheio de marcas costuma não fechar
+    # (o excesso entra como penalidade de perfil comercial em calcular()).
     if p["contato"] or p["link_bio"]:
         sinais.append(1.0)
     if sinais:
@@ -160,6 +161,11 @@ def calcular(p, pesos, cfg):
     if seg is not None and comp["faixa"] == 0.0:
         mult *= cfg["penalidade_fora_faixa"]
         motivos.append(f"⚠ fora da faixa ({int(seg):,} seguidores)".replace(",", "."))
+    com = _num(p["perfil_comercial"])
+    if com is not None and com > 0:
+        mult *= 1 - cfg["penalidade_comercial"] * min(com, 1.0)
+        if com >= 0.5:
+            motivos.append("⚠ perfil comercial (muitas marcas ou dona de negócio)")
 
     score = round(100 * base * mult, 1)
 

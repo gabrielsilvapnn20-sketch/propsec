@@ -10,7 +10,7 @@
  <div class="seg"><b>{{p.seguidores|n}}</b><span>seguidores</span>{% if p.media_views_reels %}<span class="st">~{{p.media_views_reels|n}} views por reel</span>{% endif %}</div>
  {% if p.observacoes %}<p class="porque">{{p.observacoes}}</p>{% endif %}
  {% if p.bio %}<p class="bio">{{p.bio}}</p>{% endif %}
- <div>{{tags(p.publicos)}}{% if p.stories_ativos == 1 %}<span class="tag">stories ativos</span>{% endif %}{% if p.faz_publi == 1 %}<span class="tag">já faz publi</span>{% endif %}</div>
+ <div>{{tags(p.publicos)}}{% if p.stories_ativos == 1 %}<span class="tag">stories ativos</span>{% endif %}{% if p.faz_publi == 1 %}<span class="tag">já faz publi</span>{% endif %}{% if (p.perfil_comercial or 0) >= 0.5 %}<span class="st warn">perfil comercial</span>{% endif %}</div>
  <div class="small"><a href="https://instagram.com/{{p.username}}" target="_blank" rel="noopener">Abrir no Instagram</a></div>
  <div class="acts">
   <button class="ok" data-acao="aprovado">Aprovar <kbd>A</kbd></button>
