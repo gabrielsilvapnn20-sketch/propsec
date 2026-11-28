@@ -65,11 +65,12 @@ próprio Instagram. `proximas-fontes` lista as **sementes** (fechadas, aprovadas
 
 1. Abra uma semente. Ao lado de "Enviar mensagem" há o botão de **perfis semelhantes**
    (ícone de pessoa com "+"). Clique: aparece a faixa de sugestões. Role a faixa para ver mais.
-2. Anote os @ das sugestões que parecem mulheres/influenciadoras (pule lojas, páginas,
-   homens, famosas grandes).
+2. Anote **todos** os @ das sugestões. Só pule o que é claramente loja, página/empresa
+   ou homem. **Não julgue pela foto pequena ou pelo nome**: muitas boas só aparecem quando
+   você abre o perfil. O usuário quer que você entre em cada sugestão.
 3. Verifique em lote quais são novos: `python propsec.py existe @a @b @c ...`
    (pule `JA_EXISTE`: já estão no sistema ou já foram contatadas pelo usuário).
-4. Analise as novas (passo 3).
+4. Abra e analise **cada uma** das novas, uma por vez (passo 3), sem pular.
 5. **Bola de neve:** quando uma nova for boa (nota ≥ 60), use-a como semente também e abra as
    sugestões dela. Assim você sai da rede conhecida.
 6. Registre cada semente usada: `python propsec.py fonte sugestoes nome_da_semente --vistos N`.
@@ -94,12 +95,14 @@ observações ("possivelmente agenciada"), mas pode salvar.
 
 O nicho vive de **volume**: quase toda "blogueira" compatível é oportunidade. O que decide é
 o **estilo** (parecer com as fechadas) e a **faixa de seguidores**. Reels bombando é bônus,
-não requisito. Meta: decidir em **30–60 s** por perfil, sem travar em detalhes.
+não requisito. **Olhe cada perfil com calma** (1 a 3 minutos é normal): o usuário prefere
+análise cuidadosa a pressa. Só não fique parado sem agir — se estiver em dúvida, salve com
+uma observação explicando a dúvida e deixe o usuário decidir na fila.
 
 **Passo único (obrigatório):** `liberar` → abrir o perfil → ler o topo (seguidores, nome,
 bio, categoria, destaques) → rolar a grade uma ou duas vezes. Se a aba **Reels** estiver a um
-clique, abra e anote a mediana das views que aparecem na grade (opcional). Não abra posts
-um por um, a não ser que esteja em dúvida.
+clique, abra e anote a mediana das views que aparecem na grade. Abra alguns posts e leia os
+comentários quando ajudar a entender o perfil e quem acompanha ela.
 
 **Stories (importante — só para quem passou na triagem de seguidores e estilo):**
 se a foto de perfil tiver o **anel colorido**, clique nela e assista os stories do dia.
