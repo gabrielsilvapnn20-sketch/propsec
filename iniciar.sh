@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 cd "$(dirname "$0")"
-# Fecha um painel antigo que ainda esteja rodando na porta 8000
 command -v lsof >/dev/null && lsof -ti tcp:8000 -sTCP:LISTEN | xargs -r kill 2>/dev/null
-[ -d .venv ] || { echo "Primeira execução: instalando..."; python3 -m venv .venv; }
-.venv/bin/pip install -q -r requirements.txt && .venv/bin/python propsec.py semear
-( sleep 2; open http://localhost:8000 2>/dev/null || xdg-open http://localhost:8000 2>/dev/null ) &
-.venv/bin/python propsec.py servidor
+[ -x .venv/bin/python ] || { echo "Primeira execução: criando o ambiente..."; python3 -m venv .venv || exit 1; }
+.venv/bin/pip install -q --disable-pip-version-check -r requirements.txt || echo "AVISO: não consegui atualizar as bibliotecas."
+.venv/bin/python propsec.py semear && .venv/bin/python propsec.py servidor

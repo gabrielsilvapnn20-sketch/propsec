@@ -391,9 +391,47 @@ def cmd_exportar(a):
 
 
 def cmd_servidor(a):
+    import socket
+    import threading
+    import time
+    import urllib.request
+    import webbrowser
+
+    url = f"http://localhost:{a.porta}"
+
+    def responde():
+        try:
+            with urllib.request.urlopen(url + "/api/versao", timeout=2) as r:
+                return r.status == 200
+        except Exception:
+            return False
+
+    # Porta ocupada? Se for um PropSec já aberto, só abre o navegador nele.
+    with socket.socket() as s:
+        ocupada = s.connect_ex(("127.0.0.1", a.porta)) == 0
+    if ocupada:
+        if responde():
+            print(f"O painel já está aberto em {url}. Abrindo o navegador.")
+            if not a.sem_navegador:
+                webbrowser.open(url)
+            return
+        sys.exit(f"ERRO: outro programa está usando a porta {a.porta}. Feche esse programa "
+                 f"ou rode: python propsec.py servidor --porta 8010")
+
+    def abrir_quando_pronto():
+        for _ in range(60):  # espera o painel responder (até ~30 s) e só então abre o navegador
+            if responde():
+                print(f"\nPainel pronto: {url}  (deixe esta janela aberta; para fechar o painel, feche a janela)")
+                if not a.sem_navegador:
+                    webbrowser.open(url)
+                return
+            time.sleep(0.5)
+        print("AVISO: o painel demorou para responder. Veja as mensagens acima.")
+
+    threading.Thread(target=abrir_quando_pronto, daemon=True).start()
     import uvicorn
-    print(f"Painel em http://localhost:{a.porta}")
-    uvicorn.run("app.web:app", host="127.0.0.1", port=a.porta)
+    print(f"Iniciando o painel em {url} ...")
+    uvicorn.run("app.web:app", host="127.0.0.1", port=a.porta, log_level="warning")
 
 
 def main():
@@ -432,7 +470,8 @@ def main():
     s = sub.add_parser("recalibrar"); s.add_argument("--simular", action="store_true"); s.set_defaults(f=cmd_recalibrar)
     s = sub.add_parser("resumo"); s.set_defaults(f=cmd_resumo)
     s = sub.add_parser("exportar"); s.add_argument("saida"); s.set_defaults(f=cmd_exportar)
-    s = sub.add_parser("servidor"); s.add_argument("--porta", type=int, default=8000); s.set_defaults(f=cmd_servidor)
+    s = sub.add_parser("servidor"); s.add_argument("--porta", type=int, default=8000)
+    s.add_argument("--sem-navegador", action="store_true"); s.set_defaults(f=cmd_servidor)
 
     a = ap.parse_args()
     a.f(a)
