@@ -24,8 +24,8 @@ PADRAO = {
     "perfis_por_sessao": 30,
     "perfis_por_hora": 25,
     "perfis_por_dia": 60,
-    "horario_inicio": "08:00",
-    "horario_fim": "22:00",
+    "horario_inicio": "00:00",      # sem restrição de horário por padrão
+    "horario_fim": "23:59",
     "horas_pausa_apos_alerta": 24,
 }
 ESPERA_MAXIMA = 480  # nunca dorme mais que 8 min numa chamada (limite do terminal do agente)
@@ -95,7 +95,10 @@ def retomar(con):
 
 def _no_horario(cfg, agora):
     hm = agora.strftime("%H:%M")
-    return cfg["horario_inicio"] <= hm <= cfg["horario_fim"]
+    ini, fim = cfg["horario_inicio"], cfg["horario_fim"]
+    if ini <= fim:
+        return ini <= hm <= fim
+    return hm >= ini or hm <= fim  # janela que atravessa a meia-noite, ex.: 08:00 até 02:00
 
 
 def verificar(con):
