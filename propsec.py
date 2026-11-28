@@ -137,6 +137,9 @@ def cmd_semear(a):
     con.execute("UPDATE fontes SET ativa=0 WHERE tipo = 'agencia'")
     con.commit()
     db.corrigir_fontes(con)
+    # parcerias fechadas são, por definição, o público-alvo
+    con.execute("UPDATE perfis SET publico_popular=1 WHERE referencia='fechado' AND publico_popular IS NULL")
+    con.commit()
 
 
 def _sementes(con):
@@ -268,7 +271,7 @@ def cmd_exemplos(a):
          "SELECT * FROM perfis WHERE referencia IS NULL AND status IN "
          "('aprovado','contatado','respondeu','negociando','fechado','recusou','sem_resposta') "
          "AND COALESCE(origem,'') != 'manual' ORDER BY atualizado_em DESC LIMIT 12"),
-        ("O USUÁRIO DESCARTOU (evite este tipo)",
+        ("O USUÁRIO DESCARTOU (evite este tipo — leia o motivo)",
          "SELECT * FROM perfis WHERE status='descartado' ORDER BY atualizado_em DESC LIMIT 10"),
     ]
     for titulo, sql in blocos:
@@ -278,6 +281,28 @@ def cmd_exemplos(a):
             for r in rows:
                 print(linha(r))
             print()
+
+
+def cmd_exemplo(a):
+    """Registra exemplos do usuário: 'ruim' (não quero este tipo) ou 'bom' (quero este tipo)."""
+    con = db.conectar()
+    for u in a.usernames:
+        nome = db.normalizar_username(u)
+        if not nome:
+            continue
+        p = db.buscar_perfil(con, nome)
+        obs = f"Exemplo do usuário ({'quero' if a.tipo == 'bom' else 'não quero'} este tipo): {a.motivo}"
+        dados = {"username": nome, "observacoes": obs if not (p and p["observacoes"]) else f"{p['observacoes']} | {obs}"}
+        if not p:
+            dados["origem"] = "manual"
+        if a.tipo == "bom":
+            dados.update({"referencia": "gostamos", "estilo_blogueira": 1, "publico_popular": 1})
+            status = None if p and p["status"] not in ("novo", "ignorado", "descartado") else "aprovado"
+        else:
+            status = "descartado"
+        db.salvar_perfil(con, dados, status=status)
+        print(f"@{nome}: exemplo {'BOM' if a.tipo == 'bom' else 'RUIM'} registrado")
+    print("O agente vai ler estes exemplos (python propsec.py exemplos) antes de cada sessão.")
 
 
 def cmd_contatados(a):
@@ -453,6 +478,10 @@ def main():
     s.set_defaults(f=cmd_fonte)
     s = sub.add_parser("semear"); s.set_defaults(f=cmd_semear)
     s = sub.add_parser("exemplos"); s.set_defaults(f=cmd_exemplos)
+    s = sub.add_parser("exemplo", help="registrar perfis de exemplo bons ou ruins")
+    s.add_argument("tipo", choices=["bom", "ruim"]); s.add_argument("usernames", nargs="+")
+    s.add_argument("--motivo", required=True, help="por que é (ou não é) o tipo que vocês querem")
+    s.set_defaults(f=cmd_exemplo)
     s = sub.add_parser("contatados"); s.add_argument("usernames", nargs="*")
     s.add_argument("--arquivo", help="arquivo .txt com os @ (um por linha ou separados por espaço)")
     s.set_defaults(f=cmd_contatados)

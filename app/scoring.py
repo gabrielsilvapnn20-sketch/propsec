@@ -17,6 +17,7 @@ from . import db
 MODELO_VERSAO = 3
 PESOS_PADRAO = {
     "estilo": 4.0,            # compatível com o estilo das referências (avaliação do agente, 0–1)
+    "publico": 3.0,           # conteúdo fala com público popular (não universitário/classe média)
     "faixa": 2.0,             # seguidores: ideal 3.500–15.000; acima de 30.000 não interessa
     "perfil_blogueira": 1.5,  # se apresenta como blogueira/criadora, aceita parceria, tem contato
     "stories_ativos": 1.0,    # posta stories
@@ -29,6 +30,7 @@ PESOS_PADRAO = {
 
 NOMES = {
     "estilo": "Estilo das fechadas",
+    "publico": "Público popular",
     "faixa": "Faixa de seguidores",
     "alcance_reels": "Alcance dos reels",
     "engajamento": "Engajamento",
@@ -83,6 +85,9 @@ def componentes(p, cfg) -> dict[str, float | None]:
     est = _num(p["estilo_blogueira"])
     if est is not None:
         c["estilo"] = max(0.0, min(1.0, est))
+    pop = _num(p["publico_popular"])
+    if pop is not None:
+        c["publico"] = max(0.0, min(1.0, pop))
 
     if seg:
         lo, ideal, hi, esp = cfg["faixa_min"], cfg["faixa_ideal_min"], cfg["faixa_max"], cfg["faixa_especial_max"]

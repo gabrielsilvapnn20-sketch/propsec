@@ -129,6 +129,20 @@ vizinhas, clientes; "seguido por" gente da mesma cidade).
 - **0.4** — perfil pessoal comum, poucos sinais de blogueira.
 - **0–0.2** — não é o estilo: loja, página, homem, empresa, perfil abandonado, famosa grande.
 
+**Público popular (`publico_popular`, 0 a 1)** — o produto é para público **popular**
+("baixa renda"). Perfis de público universitário/classe média raramente servem, mesmo
+parecendo blogueira. Julgue pelo **conteúdo e estilo de vida mostrados**:
+- **1.0** — rotina simples, humor do dia a dia, bairro/comunidade/cidade pequena, forró,
+  paredão, festas locais, filhos, casa, linguagem informal, foto de celular, comentários de
+  amigas e vizinhas.
+- **0.5** — misto: blogueira de cidade com alguns sinais de vida mais "arrumada".
+- **0–0.2** — faculdade/profissão na bio (enfermagem, medicina, med vet, odonto, direito
+  etc.), ensaios fotográficos e poses editoriais, link de VSCO/portfólio, "lifestyle |
+  outfits" aspiracional, clube de corrida/academia premium, viagens e restaurantes caros,
+  perfil pessoal que não é blogueira.
+**Nunca** use cor da pele, traços, cabelo, corpo ou aparência física para esta nota — só o
+que a pessoa mostra de rotina, lugares, interesses e como se comunica.
+
 **Perfil comercial (`perfil_comercial`, 0 a 1)** — o usuário raramente fecha com quem
 **vive de divulgar** (stories tomados por lojas de sapato, perfume, roupa da cidade, várias
 marcas) ou é **dona de negócio com muitas clientes** (loja de roupa, maquiagem, unha, salão).
@@ -142,14 +156,14 @@ divulgação no dia a dia.
 Isso reduz a nota (os números de stories também entram na conta sozinhos); não é motivo para
 ignorar, exceto quando é 1.0 e o estilo não é forte.
 
-**Salvar como `novo`** se estilo ≥ 0.6 **e** seguidores entre 1.000 e 30.000 (ideal
+**Salvar como `novo`** se estilo ≥ 0.6, público popular ≥ 0.4 **e** seguidores entre 1.000 e 30.000 (ideal
 3.500–15.000; de 15.000 a 30.000 só se o estilo for 0.85+). **Acima de 30.000: `ignorado`**
 ("acima de 30k") — o usuário não fecha com perfis grandes, mesmo que estejam nas referências.
 Caso contrário, salve como `ignorado` com o motivo (para não revisitar). Seguidores comprados
 (milhares de seguidores, curtidas/views ínfimas, comentários de bot) → `ignorado`.
 
 Colete o que estiver **visível sem esforço**: `seguidores`, `seguindo`, `posts`, `nome`,
-`bio`, `cidade`/`uf`, `estilo_blogueira`, `perfil_comercial`, `stories_qtd`,
+`bio`, `cidade`/`uf`, `estilo_blogueira`, `publico_popular`, `perfil_comercial`, `stories_qtd`,
 `stories_publi`, `stories_ativos` (anel colorido ou destaques
 recentes), `faz_publi` (publi/recebidos/lojas marcadas visíveis), `contato`, `link_bio`,
 `publicos` (mãe, maternidade, mulher de preso, moda, beleza, humor, forró, praia,
@@ -159,7 +173,7 @@ lembra as fechadas. Campo que você não viu: **omita**.
 ```bash
 python propsec.py salvar - <<'JSON'
 {"username": "maria.blog", "nome": "Maria", "cidade": "Codó", "uf": "MA",
- "seguidores": 6200, "seguindo": 900, "posts": 41, "estilo_blogueira": 0.9, "perfil_comercial": 0.2,
+ "seguidores": 6200, "seguindo": 900, "posts": 41, "estilo_blogueira": 0.9, "publico_popular": 0.9, "perfil_comercial": 0.2,
  "stories_qtd": 7, "stories_publi": 0.15,
  "stories_ativos": 1, "faz_publi": 1, "bio": "...", "publicos": ["mãe", "moda"],
  "media_views_reels": 4800,

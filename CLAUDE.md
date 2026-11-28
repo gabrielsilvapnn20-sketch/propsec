@@ -12,8 +12,12 @@ Buscamos influenciadoras **de menor porte** no Instagram para parcerias:
 - O agente **assiste os stories do dia** (só assistir, nunca reagir/responder) e registra
   `stories_qtd` e `stories_publi` (fração de divulgação). A conta aparece em "quem viu".
 - Views de reels/engajamento são bônus, não requisito. Poucos posts no feed é normal.
-- Blogueira de comunidade/"baixa renda", foto simples de celular: **não** é ponto negativo —
-  público fiel, já deu lucro alto. Não premiar "produção bonita".
+- **Público popular é o alvo** (`publico_popular`): blogueira de comunidade/"baixa renda",
+  rotina simples, humor, forró, cidade pequena — público fiel, já deu lucro alto. Público
+  universitário/classe média (faculdade na bio, ensaios, VSCO, "lifestyle | outfits"
+  aspiracional) raramente serve. Julgar só pelo conteúdo e estilo de vida mostrados,
+  **nunca** por aparência, cor ou corpo.
+- O usuário manda exemplos com `python propsec.py exemplo ruim|bom @a @b --motivo "..."`.
 - Antes de prospectar: `python propsec.py exemplos` (gosto real do usuário: fechadas, aprovadas,
   descartadas). O sistema reaprende sozinho a cada 5 decisões dele no painel.
 - Prospecção **aberta**: muitas "pagam de blogueira" — público pequeno mas ativo, conhecida na
