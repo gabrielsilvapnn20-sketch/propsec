@@ -30,7 +30,7 @@ PESOS_PADRAO = {
 
 NOMES = {
     "estilo": "Estilo das fechadas",
-    "publico": "Público popular",
+    "publico": "Condição de vida simples",
     "faixa": "Faixa de seguidores",
     "alcance_reels": "Alcance dos reels",
     "engajamento": "Engajamento",

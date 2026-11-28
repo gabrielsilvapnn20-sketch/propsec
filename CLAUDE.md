@@ -12,12 +12,14 @@ Buscamos influenciadoras **de menor porte** no Instagram para parcerias:
 - O agente **assiste os stories do dia** (só assistir, nunca reagir/responder) e registra
   `stories_qtd` e `stories_publi` (fração de divulgação). A conta aparece em "quem viu".
 - Views de reels/engajamento são bônus, não requisito. Poucos posts no feed é normal.
-- **Público popular é o alvo** (`publico_popular`): blogueira de comunidade/"baixa renda",
-  rotina simples, humor, forró, cidade pequena — público fiel, já deu lucro alto. Público
-  universitário/classe média (faculdade na bio, ensaios, VSCO, "lifestyle | outfits"
-  aspiracional) raramente serve. Julgar só pelo conteúdo e estilo de vida mostrados,
-  **nunca** por aparência, cor ou corpo.
-- O usuário manda exemplos com `python propsec.py exemplo ruim|bom @a @b --motivo "..."`.
+- **Condição de vida mais simples é o alvo** (campo `publico_popular`): influenciadora de
+  condição financeira mais baixa → público que acompanha esse padrão. Avaliar pela impressão
+  geral (casa, rotina/trabalho, lugares, jeito de se comunicar), comparando com os perfis que o
+  usuário confirmou como baixa renda (`exemplos`). Sem sinais claros → deixar em branco.
+  Não é filtro: quem não é baixa renda segue as outras regras com nota menor. **Nunca** julgar
+  por aparência, cor ou corpo.
+- O usuário manda exemplos com `python propsec.py exemplo ruim|bom @a @b --motivo "..."` e
+  confirma baixa renda com `python propsec.py baixa-renda @a @b`.
 - Antes de prospectar: `python propsec.py exemplos` (gosto real do usuário: fechadas, aprovadas,
   descartadas). O sistema reaprende sozinho a cada 5 decisões dele no painel.
 - Prospecção **aberta**: muitas "pagam de blogueira" — público pequeno mas ativo, conhecida na
@@ -44,6 +46,7 @@ mais forte do aprendizado. Perfis "não tão bons" no papel já deram resultado 
   da cidade"), cidades e hashtags. Lojas sem público feminino (móveis, mercado) não servem.
 - O usuário chama perfis por fora; quando ele mandar uma lista, registre com
   `python propsec.py contatados @a @b ...` (ou `--arquivo lista.txt`).
+- Nas sugestões, **abrir cada perfil** (só pular loja/empresa/homem) e analisar com calma.
 - Perfis que o usuário **aprova** na fila viram sementes e ensinam o sistema — mas **não
   afunilar**: cada sessão é ~50% linha aprovada, ~20% potencial novo, ~30% exploração
   (cidades do interior, lojas/Marcados, hashtags, estilos diferentes com público real).

@@ -132,19 +132,21 @@ vizinhas, clientes; "seguido por" gente da mesma cidade).
 - **0.4** — perfil pessoal comum, poucos sinais de blogueira.
 - **0–0.2** — não é o estilo: loja, página, homem, empresa, perfil abandonado, famosa grande.
 
-**Público popular (`publico_popular`, 0 a 1)** — o produto é para público **popular**
-("baixa renda"). Perfis de público universitário/classe média raramente servem, mesmo
-parecendo blogueira. Julgue pelo **conteúdo e estilo de vida mostrados**:
-- **1.0** — rotina simples, humor do dia a dia, bairro/comunidade/cidade pequena, forró,
-  paredão, festas locais, filhos, casa, linguagem informal, foto de celular, comentários de
-  amigas e vizinhas.
-- **0.5** — misto: blogueira de cidade com alguns sinais de vida mais "arrumada".
-- **0–0.2** — faculdade/profissão na bio (enfermagem, medicina, med vet, odonto, direito
-  etc.), ensaios fotográficos e poses editoriais, link de VSCO/portfólio, "lifestyle |
-  outfits" aspiracional, clube de corrida/academia premium, viagens e restaurantes caros,
-  perfil pessoal que não é blogueira.
-**Nunca** use cor da pele, traços, cabelo, corpo ou aparência física para esta nota — só o
-que a pessoa mostra de rotina, lugares, interesses e como se comunica.
+**Condição de vida (`publico_popular`, 0 a 1)** — o alvo é a influenciadora de **condição
+financeira mais baixa**, porque o público dela acompanha esse padrão. Avalie pela **impressão
+geral** do perfil e dos stories, como uma pessoa faria ao bater o olho — não por uma lista:
+casa e ambientes que aparecem, rotina e trabalho (CLT, comércio, atendimento, ônibus/moto),
+lugares que frequenta, jeito de se comunicar, quem interage nos comentários.
+- **1.0** — claramente condição mais simples.
+- **0.5** — misto ou difícil dizer, mas com alguns sinais.
+- **0–0.2** — claramente classe média/alta (faculdade e carreira, ensaios, viagens, vida
+  "arrumada").
+- **Sem sinais claros → omita o campo** (fica em branco, não pesa). Não chute.
+**Régua:** a primeira seção de `python propsec.py exemplos` traz perfis que o usuário
+**confirmou** como baixa renda. Compare com eles, não com descrições genéricas.
+Não é filtro: perfil que não é baixa renda segue as outras regras normalmente (só fica com
+nota menor). **Nunca** use cor da pele, traços, cabelo, corpo ou aparência física — só o que a
+pessoa mostra de rotina, lugares e como se comunica.
 
 **Perfil comercial (`perfil_comercial`, 0 a 1)** — o usuário raramente fecha com quem
 **vive de divulgar** (stories tomados por lojas de sapato, perfume, roupa da cidade, várias
@@ -159,7 +161,7 @@ divulgação no dia a dia.
 Isso reduz a nota (os números de stories também entram na conta sozinhos); não é motivo para
 ignorar, exceto quando é 1.0 e o estilo não é forte.
 
-**Salvar como `novo`** se estilo ≥ 0.6, público popular ≥ 0.4 **e** seguidores entre 1.000 e 30.000 (ideal
+**Salvar como `novo`** se estilo ≥ 0.6 **e** seguidores entre 1.000 e 30.000 (ideal
 3.500–15.000; de 15.000 a 30.000 só se o estilo for 0.85+). **Acima de 30.000: `ignorado`**
 ("acima de 30k") — o usuário não fecha com perfis grandes, mesmo que estejam nas referências.
 Caso contrário, salve como `ignorado` com o motivo (para não revisitar). Seguidores comprados

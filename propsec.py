@@ -260,6 +260,15 @@ def cmd_exemplos(a):
         extra = " · ".join(x for x in (p["bio"], p["publicos"], p["observacoes"]) if x)
         return f"  {txt}\n      {extra[:220]}" if extra else f"  {txt}"
 
+    confirmadas = db.get_config(con, "baixa_renda_confirmada", []) or []
+    if confirmadas:
+        qs = ",".join("?" for _ in confirmadas)
+        rows = con.execute(f"SELECT * FROM perfis WHERE username IN ({qs})", confirmadas).fetchall()
+        print(f"== RÉGUA DE CONDIÇÃO DE VIDA: o usuário confirmou estas como BAIXA RENDA ({len(rows)}) ==")
+        print("   Compare a condição de vida de cada perfil novo com estas (abra uma ou duas se precisar).")
+        for r in rows:
+            print(linha(r))
+        print()
     blocos = [
         ("FECHARAM COM RESULTADO ALTO (o alvo)",
          "SELECT * FROM perfis WHERE resultado_nivel='alto' OR lucro_dia >= 1000 ORDER BY lucro_dia DESC"),
@@ -296,13 +305,38 @@ def cmd_exemplo(a):
         if not p:
             dados["origem"] = "manual"
         if a.tipo == "bom":
-            dados.update({"referencia": "gostamos", "estilo_blogueira": 1, "publico_popular": 1})
+            dados.update({"estilo_blogueira": 1, "publico_popular": 1})
+            if not (p and p["referencia"]):  # nunca troca "fechamos" por "gostamos"
+                dados["referencia"] = "gostamos"
             status = None if p and p["status"] not in ("novo", "ignorado", "descartado") else "aprovado"
         else:
             status = "descartado"
         db.salvar_perfil(con, dados, status=status)
         print(f"@{nome}: exemplo {'BOM' if a.tipo == 'bom' else 'RUIM'} registrado")
     print("O agente vai ler estes exemplos (python propsec.py exemplos) antes de cada sessão.")
+
+
+def cmd_baixa_renda(a):
+    """Marca perfis que o usuário confirmou como baixa renda: viram a régua do agente."""
+    con = db.conectar()
+    lista = db.get_config(con, "baixa_renda_confirmada", []) or []
+    for u in a.usernames:
+        nome = db.normalizar_username(u)
+        if not nome:
+            continue
+        p = db.buscar_perfil(con, nome)
+        if p:
+            con.execute("UPDATE perfis SET publico_popular=1 WHERE id=?", (p["id"],))
+            scoring.rescore_perfil(con, p["id"])
+        else:
+            db.salvar_perfil(con, {"username": nome, "publico_popular": 1, "origem": "manual",
+                                   "observacoes": "confirmada pelo usuário como baixa renda"}, status="aprovado")
+        if nome not in lista:
+            lista.append(nome)
+        print(f"@{nome}: baixa renda confirmada")
+    con.commit()
+    db.set_config(con, "baixa_renda_confirmada", lista)
+    print(f"{len(lista)} perfis na régua de baixa renda.")
 
 
 def cmd_contatados(a):
@@ -478,6 +512,8 @@ def main():
     s.set_defaults(f=cmd_fonte)
     s = sub.add_parser("semear"); s.set_defaults(f=cmd_semear)
     s = sub.add_parser("exemplos"); s.set_defaults(f=cmd_exemplos)
+    s = sub.add_parser("baixa-renda", help="confirmar perfis como baixa renda (régua do agente)")
+    s.add_argument("usernames", nargs="+"); s.set_defaults(f=cmd_baixa_renda)
     s = sub.add_parser("exemplo", help="registrar perfis de exemplo bons ou ruins")
     s.add_argument("tipo", choices=["bom", "ruim"]); s.add_argument("usernames", nargs="+")
     s.add_argument("--motivo", required=True, help="por que é (ou não é) o tipo que vocês querem")
